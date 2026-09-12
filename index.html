@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Лесоруб — Пиксельная работа</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;font-family:monospace}
+button{font:inherit;cursor:pointer}
+#game{position:relative;width:100%;height:100%;image-rendering:pixelated;color:#fff}
+canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.hud{position:absolute;top:14px;left:14px;display:flex;gap:10px;flex-wrap:wrap;z-index:4}
+.panel{background:#151b22e8;border:3px solid #29333c;box-shadow:4px 4px 0 #090c0f;padding:8px 12px}
+.money{color:#ffd65a}.wood{color:#c98b50}
+#hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;text-align:center;min-width:310px}
+.key{display:inline-block;border:2px solid #dce6ed;background:#26313a;padding:2px 7px;color:#fff;box-shadow:2px 2px 0 #090c0f}
+#shop{position:absolute;inset:0;background:#0b1118cc;display:none;align-items:center;justify-content:center;z-index:10}
+.shopbox{width:min(720px,92vw);background:#1a222b;border:4px solid #3a4751;box-shadow:8px 8px 0 #070a0d;padding:20px}
+.shopbox h1{margin:0 0 4px;color:#ffd65a;font-size:28px}
+.shopsub{color:#aebbc4;margin-bottom:18px}
+.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.item{background:#111820;border:3px solid #303d47;padding:14px}
+.item h3{margin:0 0 7px}.item p{color:#aebbc4;min-height:40px}
+.buy{width:100%;padding:10px;background:#8f633e;color:white;border:0;border-bottom:4px solid #593b27}
+.buy:hover{background:#aa764a}.buy:disabled{background:#39434b;color:#77838b;cursor:not-allowed}
+.close{margin-top:15px;padding:10px 18px;background:#29343d;color:#fff;border:2px solid #44535f}
+#chop{position:absolute;inset:0;display:none;z-index:8;background:#000}
+#chopCanvas{position:absolute;inset:0;width:100%;height:100%}
+.chopUI{position:absolute;right:5%;top:18%;width:min(340px,42vw)}
+.bar{height:30px;border:4px solid #202a31;background:#0b0f12;position:relative}
+.target{position:absolute;top:-4px;height:30px;width:22%;left:39%;background:#65d66e;border-left:3px solid #d7ff9a;border-right:3px solid #d7ff9a}
+.needle{position:absolute;top:-7px;width:6px;height:38px;background:#ffdf5c;left:0;box-shadow:2px 0 #7a5711}
+.chopUI p{background:#151b22dd;padding:10px;border:3px solid #29333c}
+#toast{position:absolute;top:76px;left:50%;transform:translateX(-50%);z-index:20;background:#151b22f2;border:3px solid #34414b;padding:10px 16px;display:none}
+#start{position:absolute;inset:0;background:#111923;z-index:30;display:flex;align-items:center;justify-content:center;text-align:center}
+.startbox{max-width:620px;padding:30px}.startbox h1{font-size:48px;color:#ffd65a;text-shadow:4px 4px #5b3c1f;margin:0}.startbox p{color:#b8c4cc;line-height:1.6}.startbox button{padding:13px 26px;background:#8f633e;border:0;border-bottom:5px solid #553720;color:#fff}
+@media(max-width:700px){.chopUI{right:4%;top:12%;width:44%}.startbox h1{font-size:34px}}
+
+.actionbar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:7;display:flex;gap:10px}
+.actionbtn{min-width:150px;padding:12px 18px;background:#27333c;color:#fff;border:3px solid #42515c;border-bottom:5px solid #172027;box-shadow:4px 4px 0 #090c0f;font-weight:bold}
+.actionbtn:hover:not(:disabled){background:#34444f}.actionbtn:disabled{opacity:.45;cursor:not-allowed}
+.actionbtn.shop{background:#795638}.actionbtn.chop{background:#4f7044}
+#shopTab{position:absolute;top:14px;right:14px;z-index:6;padding:10px 16px;background:#1b252d;color:#ffd65a;border:3px solid #394750;box-shadow:4px 4px 0 #090c0f;font-weight:bold}
+#shopTab:hover{background:#293740}
+</style>
+</head>
+<body>
+<div id="game">
+<canvas id="world"></canvas>
+<div class="hud">
+ <div class="panel">💰 <span class="money" id="money">0</span> $</div>
+ <div class="panel">🪵 <span class="wood" id="wood">0</span></div>
+ <div class="panel">🪓 <span id="axeName">Ржавый топор</span></div>
+</div>
+<div id="hint" class="panel">Иди к магазину и купи первый топор</div>
+<button id="shopTab">🛒 МАГАЗИН</button>
+<div class="actionbar">
+ <button class="actionbtn shop" id="shopAction">🛒 МАГАЗИН</button>
+ <button class="actionbtn chop" id="chopAction">🪓 РУБИТЬ</button>
+</div>
+
+<div id="shop"><div class="shopbox">
+ <h1>МАГАЗИН СЛЕСАРЯ</h1><div class="shopsub">Инструменты и улучшения</div>
+ <div class="items">
+  <div class="item"><h3>🪓 Ржавый топор</h3><p>Первый инструмент. Уже пора за работу.</p><button class="buy" id="buyBasic">БЕСПЛАТНО</button></div>
+  <div class="item"><h3>🪓 Стальной топор</h3><p>Ускоряет рубку и приносит больше дерева.</p><button class="buy" id="buySteel">100 $</button></div>
+  <div class="item"><h3>🪓 Тяжёлый топор</h3><p>Ещё быстрее. Настоящий рабочий инструмент.</p><button class="buy" id="buyHeavy">250 $</button></div>
+ </div>
+ <button class="close" id="closeShop">Выйти из магазина [ESC]</button>
+</div></div>
+
+<div id="chop">
+ <canvas id="chopCanvas"></canvas>
+ <div class="chopUI">
+   <div class="panel"><b>ТОЧНОСТЬ УДАРА</b></div>
+   <div class="bar"><div class="target"></div><div class="needle" id="needle"></div></div>
+   <p>Нажимай кнопку <b>🪓 УДАРИТЬ</b>, когда жёлтая линия попадает в зелёную зону.</p><button class="actionbtn chop" id="hitAction" style="width:100%">🪓 УДАРИТЬ</button>
+ </div>
+</div>
+<div id="toast"></div>
+
+<div id="start"><div class="startbox">
+ <h1>ЛЕСОРУБ</h1>
+ <p>Пиксельная мини-игра о работе в лесу. Купи первый топор, руби деревья, сдавай древесину в магазин и улучшай инструмент.</p>
+ <button id="startBtn">НАЧАТЬ РАБОТУ</button>
+</div></div>
+</div>
+
+<script>
+const W=1200,H=700, world=document.getElementById('world'),ctx=world.getContext('2d');
+const chop=document.getElementById('chop'), cc=document.getElementById('chopCanvas'), cctx=cc.getContext('2d');
+let money=0, wood=0, axe=0, hasAxe=false, shopOpen=false, chopping=false, progress=0, needle=0, dir=1, keys={}, trees=[], player={x:520,y:390};
+const axes=[{name:'Ржавый топор',speed:1,carry:1},{name:'Стальной топор',speed:1.55,carry:2},{name:'Тяжёлый топор',speed:2.15,carry:3}];
+
+function resize(){world.width=W;world.height=H;cc.width=W;cc.height=H} resize(); addEventListener('resize',resize);
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2200)}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function spawnTrees(){trees=[];for(let i=0;i<14;i++){let x=70+(i*83)%1060,y=150+(i*137)%420;if(Math.abs(x-570)<180&&y>300) y-=130;trees.push({x,y,hp:3,max:3,shake:0})}}
+spawnTrees();
+
+function drawPixelTree(x,y,s=1){
+ ctx.fillStyle='#6b4328';ctx.fillRect(x-10*s,y+28*s,20*s,58*s);
+ ctx.fillStyle='#412819';ctx.fillRect(x-5*s,y+38*s,5*s,48*s);
+ ctx.fillStyle='#1f5c3b';ctx.fillRect(x-38*s,y-4*s,76*s,44*s);
+ ctx.fillStyle='#28734a';ctx.fillRect(x-28*s,y-28*s,56*s,44*s);
+ ctx.fillStyle='#3e8a50';ctx.fillRect(x-15*s,y-42*s,30*s,28*s);
+ ctx.fillStyle='#6eae5d';ctx.fillRect(x-8*s,y-35*s,13*s,10*s);
+}
+function drawWorld(){
+ ctx.clearRect(0,0,W,H);
+ // sky
+ ctx.fillStyle='#86c7e3';ctx.fillRect(0,0,W,H);
+ // distant hills
+ ctx.fillStyle='#5b9b72';ctx.fillRect(0,220,W,480);
+ ctx.fillStyle='#4c8765';for(let x=-20;x<W;x+=150){ctx.beginPath();ctx.moveTo(x,310);ctx.lineTo(x+75,220);ctx.lineTo(x+160,310);ctx.fill()}
+ // ground
+ ctx.fillStyle='#4f8a4c';ctx.fillRect(0,320,W,380);
+ ctx.fillStyle='#5f9a52';for(let x=0;x<W;x+=40)for(let y=350;y<H;y+=34)ctx.fillRect((x*7+y*3)%40+x,y,5,3);
+ // road to shop
+ ctx.fillStyle='#a7835d';ctx.fillRect(520,300,150,400);
+ // shop
+ ctx.fillStyle='#7b5035';ctx.fillRect(525,160,260,165);
+ ctx.fillStyle='#c97a43';ctx.fillRect(515,145,280,30);
+ ctx.fillStyle='#e7bd6a';ctx.fillRect(545,205,220,100);
+ ctx.fillStyle='#243a43';ctx.fillRect(565,235,55,70);ctx.fillRect(690,235,55,70);
+ ctx.fillStyle='#f7e1a0';ctx.font='bold 25px monospace';ctx.fillText('МАГАЗИН',590,198);
+ // trees
+ trees.forEach(t=>drawPixelTree(t.x,t.y,1));
+ // player
+ ctx.fillStyle='#2b3540';ctx.fillRect(player.x-10,player.y-28,20,34);
+ ctx.fillStyle='#d39a6a';ctx.fillRect(player.x-9,player.y-43,18,16);
+ ctx.fillStyle='#4a3327';ctx.fillRect(player.x-13,player.y-48,26,9);
+ ctx.fillStyle='#20262b';ctx.fillRect(player.x-9,player.y+6,7,17);ctx.fillRect(player.x+2,player.y+6,7,17);
+ ctx.fillStyle='#fff';ctx.font='16px monospace';ctx.fillText('вы',player.x-12,player.y-57);
+}
+function updateHUD(){document.getElementById('money').textContent=money;document.getElementById('wood').textContent=wood;document.getElementById('axeName').textContent=axes[axe].name}
+function nearShop(){return player.x>500&&player.x<810&&player.y>260}
+function nearestTree(){let best=null,d=999;trees.forEach(t=>{let dd=dist(player,t);if(dd<d){d=dd;best=t}});return d<100?best:null}
+function hint(){
+ if(shopOpen||chopping)return;
+ let h=document.getElementById('hint');
+ if(!hasAxe) h.innerHTML=nearShop()?'Нажми кнопку «МАГАЗИН» снизу':'Иди к зданию магазина';
+ else if(nearShop()&&wood>0) h.innerHTML='Нажми кнопку «МАГАЗИН» снизу, чтобы сдать древесину';
+ else if(nearestTree()) h.innerHTML='Нажми кнопку «РУБИТЬ» снизу';
+ else h.innerHTML='Найди дерево. <span class="key">WASD</span> — движение';
+}
+function openShop(){if(!nearShop())return;shopOpen=true;document.querySelector('.actionbar').style.display='none';document.getElementById('shop').style.display='flex';document.getElementById('buyBasic').disabled=hasAxe;document.getElementById('buySteel').disabled=axe>=1||money<100;document.getElementById('buyHeavy').disabled=axe>=2||money<250}
+function closeShop(){shopOpen=false;document.getElementById('shop').style.display='none';document.querySelector('.actionbar').style.display='flex'}
+document.getElementById('closeShop').onclick=closeShop;
+document.getElementById('shopTab').onclick=()=>{ if(!chopping && nearShop()) openShop(); };
+document.getElementById('shopAction').onclick=()=>shopInteract();
+document.getElementById('chopAction').onclick=()=>treeInteract();
+document.getElementById('hitAction').onclick=()=>chopHit();
+
+document.getElementById('buyBasic').onclick=()=>{hasAxe=true;toast('Ты купил первый топор!');closeShop();updateHUD()}
+document.getElementById('buySteel').onclick=()=>{money-=100;axe=1;toast('Стальной топор куплен!');closeShop();updateHUD()}
+document.getElementById('buyHeavy').onclick=()=>{money-=250;axe=2;toast('Тяжёлый топор куплен!');closeShop();updateHUD()}
+document.getElementById('startBtn').onclick=()=>document.getElementById('start').style.display='none';
+
+addEventListener('keydown',e=>{
+ keys[e.key.toLowerCase()]=true;
+ if(e.key==='Escape'){if(chopping){stopChop()}else if(shopOpen)closeShop()}
+
+});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+function shopInteract(){
+ if(shopOpen||chopping)return;
+ if(nearShop()){
+   if(!hasAxe)openShop();
+   else if(wood>0){money+=wood*25;toast('Сдано дерева: '+wood+' — получено '+wood*25+' $');wood=0;updateHUD()}
+   else openShop();
+ }
+}
+function treeInteract(){
+ if(!hasAxe)return;
+ if(nearestTree()) startChop(nearestTree());
+}
+function startChop(t){chopping=true;document.querySelector('.actionbar').style.display='none';chop.style.display='block';progress=0;needle=0;dir=1;chop.tree=t;drawChop()}
+function stopChop(){chopping=false;chop.style.display='none';document.querySelector('.actionbar').style.display='flex'}
+function drawChop(){
+ cctx.clearRect(0,0,W,H);
+ // stylized first-person view
+ cctx.fillStyle='#78a7b8';cctx.fillRect(0,0,W,H);
+ cctx.fillStyle='#4e7650';cctx.fillRect(0,350,W,350);
+ cctx.fillStyle='#35543a';cctx.fillRect(0,330,W,25);
+ // tree close-up
+ cctx.fillStyle='#59351f';cctx.fillRect(420,105,360,500);
+ cctx.fillStyle='#77482a';cctx.fillRect(475,105,250,500);
+ cctx.fillStyle='#8f5a31';cctx.fillRect(515,105,100,500);
+ cctx.fillStyle='#a66b3b';cctx.fillRect(545,125,35,450);
+ // bark pixels
+ cctx.fillStyle='#4b2c1d';for(let y=140;y<570;y+=45)cctx.fillRect(455+(y%80),y,22,9);
+ // axe at bottom
+ cctx.save();cctx.translate(950,570);cctx.rotate(-.55+Math.sin(performance.now()/100)*.08);
+ cctx.fillStyle='#7d4f2c';cctx.fillRect(-25,-160,28,190);cctx.fillStyle='#b9c5cc';cctx.fillRect(-90,-170,95,28);cctx.restore();
+}
+function chopLoop(){
+ if(!chopping)return;
+ needle+=dir;
+ if(needle>100){needle=100;dir=-1} if(needle<0){needle=0;dir=1}
+ document.getElementById('needle').style.left=needle+'%';
+ setTimeout(chopLoop,1000);
+}
+function chopHit(){
+ if(!chopping)return;
+ if(needle>=39&&needle<=61){
+   progress++;
+   chop.tree.shake=8;
+   toast('Отличный удар! '+progress+'/3');
+   if(progress>=3){
+     let amount=axes[axe].carry;wood+=amount;chop.tree.hp=3;chop.tree.x=80+Math.random()*1040;chop.tree.y=330+Math.random()*300;
+     stopChop();updateHUD();toast('Нарублено дерева: +'+amount+' 🪵');
+   }
+ }else toast('Мимо! Лови зелёную зону.');
+}
+
+function loop(){
+ let sp=3;
+ if(!shopOpen&&!chopping){
+  if(keys.w||keys.arrowup)player.y-=sp;if(keys.s||keys.arrowdown)player.y+=sp;
+  if(keys.a||keys.arrowleft)player.x-=sp;if(keys.d||keys.arrowright)player.x+=sp;
+  player.x=Math.max(30,Math.min(W-30,player.x));player.y=Math.max(330,Math.min(H-35,player.y));
+  drawWorld();hint();
+  const shopBtn=document.getElementById('shopAction'), chopBtn=document.getElementById('chopAction'), shopTab=document.getElementById('shopTab');
+  shopBtn.disabled=!nearShop(); shopTab.style.display=nearShop()?'block':'none';
+  shopBtn.textContent=nearShop()?(wood>0?'🛒 СДАТЬ ДЕРЕВО':'🛒 МАГАЗИН'):'🛒 МАГАЗИН';
+  chopBtn.disabled=!hasAxe||!nearestTree();
+ } else if(chopping){drawChop();chopLoop()}
+ requestAnimationFrame(loop);
+}
+updateHUD();loop();
+</script>
+</body>
+</html>
