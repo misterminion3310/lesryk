@@ -2,67 +2,85 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Лесоруб — Пиксельная работа</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;font-family:monospace}
+*{box-sizing:border-box;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;font-family:monospace}
 button{font:inherit;cursor:pointer}
-#game{position:relative;width:100%;height:100%;image-rendering:pixelated;color:#fff}
+#game{position:relative;width:100%;height:100%;image-rendering:pixelated;color:#fff;touch-action:none}
 canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
 .hud{position:absolute;top:14px;left:14px;display:flex;gap:10px;flex-wrap:wrap;z-index:4}
 .panel{background:#151b22e8;border:3px solid #29333c;box-shadow:4px 4px 0 #090c0f;padding:8px 12px}
 .money{color:#ffd65a}.wood{color:#c98b50}
-#hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;text-align:center;min-width:310px}
+#hint{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);z-index:5;text-align:center;min-width:280px}
 .key{display:inline-block;border:2px solid #dce6ed;background:#26313a;padding:2px 7px;color:#fff;box-shadow:2px 2px 0 #090c0f}
-#shop{position:absolute;inset:0;background:#0b1118cc;display:none;align-items:center;justify-content:center;z-index:10}
-.shopbox{width:min(720px,92vw);background:#1a222b;border:4px solid #3a4751;box-shadow:8px 8px 0 #070a0d;padding:20px}
-.shopbox h1{margin:0 0 4px;color:#ffd65a;font-size:28px}
+
+/* Магазин и Помощь */
+#shop,#help,#start{position:absolute;inset:0;background:#0b1118cc;display:none;align-items:center;justify-content:center;z-index:15}
+#start{display:flex;background:#111923;z-index:30}
+.shopbox,.helpbox,.startbox{width:min(720px,92vw);max-height:86vh;overflow:auto;background:#1a222b;border:4px solid #3a4751;box-shadow:8px 8px 0 #070a0d;padding:20px}
+.shopbox h1,.helpbox h1,.startbox h1{margin:0 0 4px;color:#ffd65a;font-size:28px}
 .shopsub{color:#aebbc4;margin-bottom:18px}
-.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .item{background:#111820;border:3px solid #303d47;padding:14px}
 .item h3{margin:0 0 7px}.item p{color:#aebbc4;min-height:40px}
 .buy{width:100%;padding:10px;background:#8f633e;color:white;border:0;border-bottom:4px solid #593b27}
 .buy:hover{background:#aa764a}.buy:disabled{background:#39434b;color:#77838b;cursor:not-allowed}
 .close{margin-top:15px;padding:10px 18px;background:#29343d;color:#fff;border:2px solid #44535f}
+
+/* Экран рубки */
 #chop{position:absolute;inset:0;display:none;z-index:8;background:#000}
 #chopCanvas{position:absolute;inset:0;width:100%;height:100%}
 .chopUI{position:absolute;right:5%;top:18%;width:min(340px,42vw)}
-.bar{height:30px;border:4px solid #202a31;background:#0b0f12;position:relative}
-.target{position:absolute;top:-4px;height:30px;width:22%;left:39%;background:#65d66e;border-left:3px solid #d7ff9a;border-right:3px solid #d7ff9a}
-.needle{position:absolute;top:-7px;width:6px;height:38px;background:#ffdf5c;left:0;box-shadow:2px 0 #7a5711}
+.bar{height:30px;border:4px solid #202a31;background:#0b0f12;position:relative;overflow:hidden}
+.target{position:absolute;top:0;bottom:0;width:22%;left:39%;background:#65d66e;border-left:3px solid #d7ff9a;border-right:3px solid #d7ff9a}
+.needle{position:absolute;top:0;bottom:0;width:6px;background:#ffdf5c;left:0%;box-shadow:2px 0 #7a5711;transform:translateX(-50%)}
 .chopUI p{background:#151b22dd;padding:10px;border:3px solid #29333c}
-#toast{position:absolute;top:76px;left:50%;transform:translateX(-50%);z-index:20;background:#151b22f2;border:3px solid #34414b;padding:10px 16px;display:none}
-#help{position:absolute;inset:0;background:#0b1118cc;display:none;align-items:center;justify-content:center;z-index:15}
-.helpbox{width:min(680px,92vw);max-height:86vh;overflow:auto;background:#1a222b;border:4px solid #3a4751;box-shadow:8px 8px 0 #070a0d;padding:20px}
-.helpbox h1{margin:0 0 12px;color:#ffd65a;font-size:28px}
-.helpbox h2{margin:14px 0 6px;color:#fff;font-size:18px}
-.helpbox p,.helpbox li{color:#c2ccd2;line-height:1.5}
-.helpbox ul{margin-top:6px;padding-left:24px}
-#helpTab{position:absolute;top:14px;right:145px;z-index:6;padding:10px 16px;background:#1b252d;color:#fff;border:3px solid #394750;box-shadow:4px 4px 0 #090c0f;font-weight:bold}
-#helpTab:hover{background:#293740}
-#start{position:absolute;inset:0;background:#111923;z-index:30;display:flex;align-items:center;justify-content:center;text-align:center}
-.startbox{max-width:620px;padding:30px}.startbox h1{font-size:48px;color:#ffd65a;text-shadow:4px 4px #5b3c1f;margin:0}.startbox p{color:#b8c4cc;line-height:1.6}.startbox button{padding:13px 26px;background:#8f633e;border:0;border-bottom:5px solid #553720;color:#fff}
-@media(max-width:700px){.chopUI{right:4%;top:12%;width:44%}.startbox h1{font-size:34px}}
+#toast{position:absolute;top:76px;left:50%;transform:translateX(-50%);z-index:20;background:#151b22f2;border:3px solid #34414b;padding:10px 16px;display:none;pointer-events:none}
 
-.actionbar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:7;display:flex;gap:10px}
-.actionbtn{min-width:150px;padding:12px 18px;background:#27333c;color:#fff;border:3px solid #42515c;border-bottom:5px solid #172027;box-shadow:4px 4px 0 #090c0f;font-weight:bold}
+#helpTab,#shopTab{position:absolute;top:14px;z-index:6;padding:10px 16px;background:#1b252d;color:#fff;border:3px solid #394750;box-shadow:4px 4px 0 #090c0f;font-weight:bold}
+#helpTab{right:14px}
+#shopTab{right:145px;color:#ffd65a;display:none}
+
+/* Кнопки действий */
+.actionbar{position:absolute;right:20px;bottom:20px;z-index:7;display:flex;flex-direction:column;gap:12px}
+.actionbtn{min-width:140px;padding:14px 18px;background:#27333c;color:#fff;border:3px solid #42515c;border-bottom:5px solid #172027;box-shadow:4px 4px 0 #090c0f;font-weight:bold;font-size:16px;touch-action:manipulation}
 .actionbtn:hover:not(:disabled){background:#34444f}.actionbtn:disabled{opacity:.45;cursor:not-allowed}
 .actionbtn.shop{background:#795638}.actionbtn.chop{background:#4f7044}
-#shopTab{position:absolute;top:14px;right:14px;z-index:6;padding:10px 16px;background:#1b252d;color:#ffd65a;border:3px solid #394750;box-shadow:4px 4px 0 #090c0f;font-weight:bold}
-#shopTab:hover{background:#293740}
+
+/* Сенсорный джойстик */
+#joystickArea{position:absolute;left:20px;bottom:20px;width:120px;height:120px;background:#ffffff15;border:2px dashed #ffffff40;border-radius:50%;z-index:7;touch-action:none}
+#joystickStick{position:absolute;left:35px;top:35px;width:50px;height:50px;background:#ffd65a88;border:3px solid #ffd65a;border-radius:50%;pointer-events:none}
+
+@media(max-width:700px){
+  .chopUI{right:4%;top:10%;width:80%;left:10%}
+  #hint{bottom:150px;font-size:12px;min-width:200px}
+  #joystickArea{width:100px;height:100px;left:15px;bottom:15px}
+  #joystickStick{width:40px;height:40px;left:30px;top:30px}
+  .actionbar{right:15px;bottom:15px}
+  .actionbtn{padding:12px;min-width:120px;font-size:14px}
+}
 </style>
 </head>
 <body>
 <div id="game">
 <canvas id="world"></canvas>
+
 <div class="hud">
  <div class="panel">💰 <span class="money" id="money">0</span> $</div>
  <div class="panel">🪵 <span class="wood" id="wood">0</span></div>
- <div class="panel">🪓 <span id="axeName">Ржавый топор</span></div>
+ <div class="panel">🪓 <span id="axeName">Нет топора</span></div>
 </div>
+
 <div id="hint" class="panel">Иди к магазину и купи первый топор</div>
-<button id="helpTab">❓ КАК ИГРАТЬ</button>
+<button id="helpTab">❓ ПОМОЩЬ</button>
 <button id="shopTab">🛒 МАГАЗИН</button>
+
+<!-- Джойстик для телефона -->
+<div id="joystickArea"><div id="joystickStick"></div></div>
+
+<!-- Экранные кнопки -->
 <div class="actionbar">
  <button class="actionbtn shop" id="shopAction">🛒 МАГАЗИН</button>
  <button class="actionbtn chop" id="chopAction">🪓 РУБИТЬ</button>
@@ -71,20 +89,23 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 <div id="help"><div class="helpbox">
 <h1>❓ КАК ИГРАТЬ</h1>
 <h2>🎯 Цель игры</h2><p>Руби деревья, сдавай древесину в магазин и покупай более мощные топоры.</p>
-<h2>🚶 Управление</h2><ul><li><b>WASD</b> или <b>стрелки</b> — движение.</li><li><b>🪓 РУБИТЬ</b> — рубить ближайшее дерево.</li><li><b>ESC</b> — выйти из рубки или закрыть окно.</li></ul>
-<h2>🪓 Как рубить</h2><p>Нажимай <b>🪓 УДАРИТЬ</b>, когда жёлтая линия попадает в зелёную зону. Нужно сделать <b>3 точных удара</b>. За промах прогресс не увеличивается.</p>
-<h2>💰 Как заработать</h2><p>После рубки получаешь древесину. Подойди к магазину и нажми <b>🛒 СДАТЬ ДЕРЕВО</b>. Каждое дерево приносит <b>25 $</b>.</p>
-<h2>⬆️ Топоры</h2><ul><li><b>Ржавый</b> — бесплатно, 1 древесина.</li><li><b>Стальной</b> — 100 $, 2 древесины.</li><li><b>Тяжёлый</b> — 250 $, 3 древесины.</li></ul>
+<h2>🚶 Управление</h2>
+<ul>
+ <li><b>ПК:</b> W, A, S, D или стрелки — движение.</li>
+ <li><b>Телефон:</b> Джойстик в левом нижнем углу экрана.</li>
+ <li><b>Действия:</b> Нажимай кнопки на экране или клавишу <b>E</b> / <b>Пробел</b>.</li>
+</ul>
 <button class="close" id="closeHelp">Закрыть [ESC]</button>
 </div></div>
+
 <div id="shop"><div class="shopbox">
  <h1>МАГАЗИН СЛЕСАРЯ</h1><div class="shopsub">Инструменты и улучшения</div>
  <div class="items">
-  <div class="item"><h3>🪓 Ржавый топор</h3><p>Первый инструмент. Уже пора за работу.</p><button class="buy" id="buyBasic">БЕСПЛАТНО</button></div>
+  <div class="item"><h3>🪓 Ржавый топор</h3><p>Первый инструмент. Пора за работу.</p><button class="buy" id="buyBasic">БЕСПЛАТНО</button></div>
   <div class="item"><h3>🪓 Стальной топор</h3><p>Ускоряет рубку и приносит больше дерева.</p><button class="buy" id="buySteel">100 $</button></div>
-  <div class="item"><h3>🪓 Тяжёлый топор</h3><p>Ещё быстрее. Настоящий рабочий инструмент.</p><button class="buy" id="buyHeavy">250 $</button></div>
+  <div class="item"><h3>🪓 Тяжёлый топор</h3><p>Настоящий мощный инструмент.</p><button class="buy" id="buyHeavy">250 $</button></div>
  </div>
- <button class="close" id="closeShop">Выйти из магазина [ESC]</button>
+ <button class="close" id="closeShop">Закрыть [ESC]</button>
 </div></div>
 
 <div id="chop">
@@ -92,28 +113,60 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
  <div class="chopUI">
    <div class="panel"><b>ТОЧНОСТЬ УДАРА</b></div>
    <div class="bar"><div class="target"></div><div class="needle" id="needle"></div></div>
-   <p>Нажимай кнопку <b>🪓 УДАРИТЬ</b>, когда жёлтая линия попадает в зелёную зону.</p><button class="actionbtn chop" id="hitAction" style="width:100%">🪓 УДАРИТЬ</button>
+   <p>Жми кнопку <b>🪓 УДАРИТЬ</b>, когда линия в зелёной зоне!</p>
+   <button class="actionbtn chop" id="hitAction" style="width:100%;margin-top:10px">🪓 УДАРИТЬ</button>
  </div>
 </div>
 <div id="toast"></div>
 
 <div id="start"><div class="startbox">
  <h1>ЛЕСОРУБ</h1>
- <p>Пиксельная мини-игра о работе в лесу. Купи первый топор, руби деревья, сдавай древесину в магазин и улучшай инструмент.</p>
- <button id="startBtn">НАЧАТЬ РАБОТУ</button>
+ <p>Пиксельная мини-игра. Купи топор, руби деревья, сдавай древесину и улучшай инвентарь!</p>
+ <button id="startBtn" class="buy" style="font-size:20px;padding:15px">НАЧАТЬ РАБОТУ</button>
 </div></div>
 </div>
 
 <script>
-const W=1200,H=700, world=document.getElementById('world'),ctx=world.getContext('2d');
+const W=1200, H=700;
+const world=document.getElementById('world'), ctx=world.getContext('2d');
 const chop=document.getElementById('chop'), cc=document.getElementById('chopCanvas'), cctx=cc.getContext('2d');
-let money=0, wood=0, axe=0, hasAxe=false, shopOpen=false, chopping=false, progress=0, needle=0, dir=1, keys={}, trees=[], player={x:520,y:390};
-const axes=[{name:'Ржавый топор',speed:1,carry:1},{name:'Стальной топор',speed:1.55,carry:2},{name:'Тяжёлый топор',speed:2.15,carry:3}];
 
-function resize(){world.width=W;world.height=H;cc.width=W;cc.height=H} resize(); addEventListener('resize',resize);
-function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2200)}
+let money=0, wood=0, axe=-1, hasAxe=false, shopOpen=false, chopping=false;
+let firstSellDone=false;
+let progress=0, needlePos=0, needleDir=1, keys={}, trees=[], player={x:520,y:390};
+let currentTree=null, treeShake=0, lastTime=performance.now();
+
+// Джойстик
+let joyX=0, joyY=0, joyActive=false;
+
+const axes=[
+  {name:'Ржавый топор', speed:80, carry:1},
+  {name:'Стальной топор', speed:120, carry:2},
+  {name:'Тяжёлый топор', speed:170, carry:3}
+];
+
+function resize(){world.width=W;world.height=H;cc.width=W;cc.height=H} 
+resize(); 
+addEventListener('resize',resize);
+
+function toast(t){
+  const e=document.getElementById('toast');
+  e.textContent=t;
+  e.style.display='block';
+  clearTimeout(toast.t);
+  toast.t=setTimeout(()=>e.style.display='none',2200);
+}
+
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
-function spawnTrees(){trees=[];for(let i=0;i<14;i++){let x=70+(i*83)%1060,y=150+(i*137)%420;if(Math.abs(x-570)<180&&y>300) y-=130;trees.push({x,y,hp:3,max:3,shake:0})}}
+
+function spawnTrees(){
+  trees=[];
+  for(let i=0;i<14;i++){
+    let x=70+(i*83)%1060, y=340+(i*137)%300;
+    if(x > 460 && x < 830 && y < 450) y += 150;
+    trees.push({x,y,hp:3});
+  }
+}
 spawnTrees();
 
 function drawPixelTree(x,y,s=1){
@@ -124,133 +177,313 @@ function drawPixelTree(x,y,s=1){
  ctx.fillStyle='#3e8a50';ctx.fillRect(x-15*s,y-42*s,30*s,28*s);
  ctx.fillStyle='#6eae5d';ctx.fillRect(x-8*s,y-35*s,13*s,10*s);
 }
+
 function drawWorld(){
  ctx.clearRect(0,0,W,H);
- // sky
  ctx.fillStyle='#86c7e3';ctx.fillRect(0,0,W,H);
- // distant hills
  ctx.fillStyle='#5b9b72';ctx.fillRect(0,220,W,480);
- ctx.fillStyle='#4c8765';for(let x=-20;x<W;x+=150){ctx.beginPath();ctx.moveTo(x,310);ctx.lineTo(x+75,220);ctx.lineTo(x+160,310);ctx.fill()}
- // ground
+ ctx.fillStyle='#4c8765';
+ for(let x=-20;x<W;x+=150){
+   ctx.beginPath();ctx.moveTo(x,310);ctx.lineTo(x+75,220);ctx.lineTo(x+160,310);ctx.fill();
+ }
  ctx.fillStyle='#4f8a4c';ctx.fillRect(0,320,W,380);
- ctx.fillStyle='#5f9a52';for(let x=0;x<W;x+=40)for(let y=350;y<H;y+=34)ctx.fillRect((x*7+y*3)%40+x,y,5,3);
- // road to shop
+ ctx.fillStyle='#5f9a52';
+ for(let x=0;x<W;x+=40)for(let y=350;y<H;y+=34)ctx.fillRect((x*7+y*3)%40+x,y,5,3);
  ctx.fillStyle='#a7835d';ctx.fillRect(520,300,150,400);
- // shop
  ctx.fillStyle='#7b5035';ctx.fillRect(525,160,260,165);
  ctx.fillStyle='#c97a43';ctx.fillRect(515,145,280,30);
  ctx.fillStyle='#e7bd6a';ctx.fillRect(545,205,220,100);
  ctx.fillStyle='#243a43';ctx.fillRect(565,235,55,70);ctx.fillRect(690,235,55,70);
  ctx.fillStyle='#f7e1a0';ctx.font='bold 25px monospace';ctx.fillText('МАГАЗИН',590,198);
- // trees
- trees.forEach(t=>drawPixelTree(t.x,t.y,1));
- // player
+ 
+ trees.slice().sort((a,b)=>a.y-b.y).forEach(t=>drawPixelTree(t.x,t.y,1));
+
+ // Игрок
  ctx.fillStyle='#2b3540';ctx.fillRect(player.x-10,player.y-28,20,34);
  ctx.fillStyle='#d39a6a';ctx.fillRect(player.x-9,player.y-43,18,16);
  ctx.fillStyle='#4a3327';ctx.fillRect(player.x-13,player.y-48,26,9);
  ctx.fillStyle='#20262b';ctx.fillRect(player.x-9,player.y+6,7,17);ctx.fillRect(player.x+2,player.y+6,7,17);
  ctx.fillStyle='#fff';ctx.font='16px monospace';ctx.fillText('вы',player.x-12,player.y-57);
 }
-function updateHUD(){document.getElementById('money').textContent=money;document.getElementById('wood').textContent=wood;document.getElementById('axeName').textContent=axes[axe].name}
-function nearShop(){return player.x>500&&player.x<810&&player.y>260}
-function nearestTree(){let best=null,d=999;trees.forEach(t=>{let dd=dist(player,t);if(dd<d){d=dd;best=t}});return d<100?best:null}
-function hint(){
- if(shopOpen||chopping)return;
- let h=document.getElementById('hint');
- if(!hasAxe) h.innerHTML=nearShop()?'Нажми кнопку «МАГАЗИН» снизу':'Иди к зданию магазина';
- else if(nearShop()&&wood>0) h.innerHTML='Нажми кнопку «МАГАЗИН» снизу, чтобы сдать древесину';
- else if(nearestTree()) h.innerHTML='Нажми кнопку «РУБИТЬ» снизу';
- else h.innerHTML='Найди дерево. <span class="key">WASD</span> — движение';
+
+function updateHUD(){
+  document.getElementById('money').textContent=money;
+  document.getElementById('wood').textContent=wood;
+  document.getElementById('axeName').textContent=hasAxe ? axes[axe].name : 'Нет топора';
 }
-function openShop(){if(!nearShop())return;shopOpen=true;document.querySelector('.actionbar').style.display='none';document.getElementById('shop').style.display='flex';document.getElementById('buyBasic').disabled=hasAxe;document.getElementById('buySteel').disabled=axe>=1||money<100;document.getElementById('buyHeavy').disabled=axe>=2||money<250}
-function closeShop(){shopOpen=false;document.getElementById('shop').style.display='none';document.querySelector('.actionbar').style.display='flex'}
+
+function nearShop(){return player.x>500&&player.x<810&&player.y>260&&player.y<380}
+function nearestTree(){
+  let best=null,d=999;
+  trees.forEach(t=>{let dd=dist(player,t);if(dd<d){d=dd;best=t}});
+  return d<90?best:null;
+}
+
+function hint(){
+ let h=document.getElementById('hint');
+ if(firstSellDone || shopOpen || chopping){
+   h.style.display='none';
+   return;
+ }
+ h.style.display='block';
+ if(!hasAxe) h.innerHTML=nearShop()?'Нажми «МАГАЗИН»':'Иди к магазину за топором';
+ else if(nearShop()&&wood>0) h.innerHTML='Нажми «СДАТЬ ДЕРЕВО»';
+ else if(nearestTree()) h.innerHTML='Нажми «РУБИТЬ»';
+ else h.innerHTML='Ищи деревья. Двигайся джойстиком или WASD';
+}
+
+function openShop(){
+  if(!nearShop())return;
+  shopOpen=true;
+  document.querySelector('.actionbar').style.display='none';
+  document.getElementById('joystickArea').style.display='none';
+  document.getElementById('shop').style.display='flex';
+  document.getElementById('buyBasic').disabled=hasAxe;
+  document.getElementById('buySteel').disabled=axe>=1||money<100;
+  document.getElementById('buyHeavy').disabled=axe>=2||money<250;
+}
+
+function closeShop(){
+  shopOpen=false;
+  document.getElementById('shop').style.display='none';
+  document.querySelector('.actionbar').style.display='flex';
+  document.getElementById('joystickArea').style.display='block';
+}
+
 document.getElementById('closeShop').onclick=closeShop;
-function openHelp(){if(!chopping)document.getElementById('help').style.display='flex'}
-function closeHelp(){document.getElementById('help').style.display='none'}
-document.getElementById('helpTab').onclick=openHelp;
-document.getElementById('closeHelp').onclick=closeHelp;
+document.getElementById('helpTab').onclick=()=>{
+  if(!chopping){
+    document.getElementById('help').style.display='flex';
+    document.getElementById('joystickArea').style.display='none';
+  }
+};
+document.getElementById('closeHelp').onclick=()=>{
+  document.getElementById('help').style.display='none';
+  if(!shopOpen && !chopping) document.getElementById('joystickArea').style.display='block';
+};
+
 document.getElementById('shopTab').onclick=()=>{ if(!chopping && nearShop()) openShop(); };
 document.getElementById('shopAction').onclick=()=>shopInteract();
 document.getElementById('chopAction').onclick=()=>treeInteract();
 document.getElementById('hitAction').onclick=()=>chopHit();
 
-document.getElementById('buyBasic').onclick=()=>{hasAxe=true;toast('Ты купил первый топор!');closeShop();updateHUD()}
-document.getElementById('buySteel').onclick=()=>{money-=100;axe=1;toast('Стальной топор куплен!');closeShop();updateHUD()}
-document.getElementById('buyHeavy').onclick=()=>{money-=250;axe=2;toast('Тяжёлый топор куплен!');closeShop();updateHUD()}
+document.getElementById('buyBasic').onclick=()=>{
+  hasAxe=true;axe=0;
+  toast('Ты получил первый топор!');
+  closeShop();updateHUD();
+}
+document.getElementById('buySteel').onclick=()=>{
+  money-=100;axe=1;hasAxe=true;
+  toast('Стальной топор куплен!');
+  closeShop();updateHUD();
+}
+document.getElementById('buyHeavy').onclick=()=>{
+  money-=250;axe=2;hasAxe=true;
+  toast('Тяжёлый топор куплен!');
+  closeShop();updateHUD();
+}
 document.getElementById('startBtn').onclick=()=>document.getElementById('start').style.display='none';
 
+// Управление клавиатурой (WASD + Стрелки)
 addEventListener('keydown',e=>{
- keys[e.key.toLowerCase()]=true;
- if(e.key==='Escape'){if(chopping){stopChop()}else if(shopOpen)closeShop();else closeHelp()}
-
+ const k=e.key.toLowerCase();
+ keys[k]=true;
+ if(e.key==='Escape'){
+   if(chopping) stopChop();
+   else if(shopOpen) closeShop();
+   else document.getElementById('help').style.display='none';
+ }
+ if(e.key===' ' && chopping){ chopHit(); e.preventDefault(); }
+ if(k==='e' || k==='у'){
+   if(chopping) chopHit();
+   else if(nearShop()) shopInteract();
+   else treeInteract();
+ }
 });
+
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+// Настройка Тач-Джойстика
+const joyArea = document.getElementById('joystickArea');
+const joyStick = document.getElementById('joystickStick');
+
+function handleTouch(e){
+  if(!joyActive) return;
+  const touch = e.touches[0];
+  const rect = joyArea.getBoundingClientRect();
+  const centerX = rect.left + rect.width/2;
+  const centerY = rect.top + rect.height/2;
+  
+  let dx = touch.clientX - centerX;
+  let dy = touch.clientY - centerY;
+  let distance = Math.hypot(dx, dy);
+  let maxRadius = rect.width/2;
+  
+  if(distance > maxRadius){
+    dx = (dx / distance) * maxRadius;
+    dy = (dy / distance) * maxRadius;
+  }
+  
+  joyX = dx / maxRadius;
+  joyY = dy / maxRadius;
+  
+  joyStick.style.transform = `translate(${dx}px, ${dy}px)`;
+}
+
+joyArea.addEventListener('touchstart', e => { joyActive = true; handleTouch(e); e.preventDefault(); });
+joyArea.addEventListener('touchmove', e => { handleTouch(e); e.preventDefault(); });
+joyArea.addEventListener('touchend', e => {
+  joyActive = false;
+  joyX = 0; joyY = 0;
+  joyStick.style.transform = 'translate(0px, 0px)';
+});
+
 function shopInteract(){
  if(shopOpen||chopping)return;
  if(nearShop()){
-   if(!hasAxe)openShop();
-   else if(wood>0){money+=wood*25;toast('Сдано дерева: '+wood+' — получено '+wood*25+' $');wood=0;updateHUD()}
-   else openShop();
+   if(wood>0){
+     let earned=wood*25;
+     money+=earned;
+     toast('Сдано дерева: '+wood+' — получено '+earned+' $');
+     wood=0;
+     firstSellDone=true;
+     updateHUD();
+   } else {
+     openShop();
+   }
  }
 }
+
 function treeInteract(){
- if(!hasAxe)return;
- if(nearestTree()) startChop(nearestTree());
+ if(!hasAxe) return toast('Сначала купи топор в магазине!');
+ const t=nearestTree();
+ if(t) startChop(t);
 }
-function startChop(t){chopping=true;document.querySelector('.actionbar').style.display='none';chop.style.display='block';progress=0;needle=0;dir=1;chop.tree=t;drawChop()}
-function stopChop(){chopping=false;chop.style.display='none';document.querySelector('.actionbar').style.display='flex'}
+
+function startChop(t){
+ chopping=true;
+ currentTree=t;
+ document.querySelector('.actionbar').style.display='none';
+ document.getElementById('joystickArea').style.display='none';
+ chop.style.display='block';
+ progress=0;
+ needlePos=0;
+ needleDir=1;
+ drawChop();
+}
+
+function stopChop(){
+ chopping=false;
+ currentTree=null;
+ chop.style.display='none';
+ document.querySelector('.actionbar').style.display='flex';
+ document.getElementById('joystickArea').style.display='block';
+}
+
 function drawChop(){
  cctx.clearRect(0,0,W,H);
- // stylized first-person view
+ let shakeX = treeShake > 0 ? (Math.random()-0.5)*treeShake*2 : 0;
+ 
  cctx.fillStyle='#78a7b8';cctx.fillRect(0,0,W,H);
  cctx.fillStyle='#4e7650';cctx.fillRect(0,350,W,350);
  cctx.fillStyle='#35543a';cctx.fillRect(0,330,W,25);
- // tree close-up
+ 
+ cctx.save();
+ cctx.translate(shakeX, 0);
  cctx.fillStyle='#59351f';cctx.fillRect(420,105,360,500);
  cctx.fillStyle='#77482a';cctx.fillRect(475,105,250,500);
  cctx.fillStyle='#8f5a31';cctx.fillRect(515,105,100,500);
  cctx.fillStyle='#a66b3b';cctx.fillRect(545,125,35,450);
- // bark pixels
- cctx.fillStyle='#4b2c1d';for(let y=140;y<570;y+=45)cctx.fillRect(455+(y%80),y,22,9);
- // axe at bottom
- cctx.save();cctx.translate(950,570);cctx.rotate(-.55+Math.sin(performance.now()/100)*.08);
- cctx.fillStyle='#7d4f2c';cctx.fillRect(-25,-160,28,190);cctx.fillStyle='#b9c5cc';cctx.fillRect(-90,-170,95,28);cctx.restore();
-}
-function chopLoop(){
- if(!chopping)return;
- needle+=dir;
- if(needle>100){needle=100;dir=-1} if(needle<0){needle=0;dir=1}
- document.getElementById('needle').style.left=needle+'%';
- setTimeout(chopLoop,1000);
-}
-function chopHit(){
- if(!chopping)return;
- if(needle>=39&&needle<=61){
-   progress++;
-   chop.tree.shake=8;
-   toast('Отличный удар! '+progress+'/3');
-   if(progress>=3){
-     let amount=axes[axe].carry;wood+=amount;chop.tree.hp=3;chop.tree.x=80+Math.random()*1040;chop.tree.y=330+Math.random()*300;
-     stopChop();updateHUD();toast('Нарублено дерева: +'+amount+' 🪵');
-   }
- }else toast('Мимо! Лови зелёную зону.');
+ cctx.fillStyle='#4b2c1d';
+ for(let y=140;y<570;y+=45) cctx.fillRect(455+(y%80),y,22,9);
+ cctx.restore();
+
+ cctx.save();
+ cctx.translate(950,570);
+ cctx.rotate(-.55+Math.sin(performance.now()/100)*.04);
+ cctx.fillStyle='#7d4f2c';cctx.fillRect(-25,-160,28,190);
+ cctx.fillStyle='#b9c5cc';cctx.fillRect(-90,-170,95,28);
+ cctx.restore();
 }
 
-function loop(){
- let sp=3;
- if(!shopOpen&&!chopping){
-  if(keys.w||keys.arrowup)player.y-=sp;if(keys.s||keys.arrowdown)player.y+=sp;
-  if(keys.a||keys.arrowleft)player.x-=sp;if(keys.d||keys.arrowright)player.x+=sp;
-  player.x=Math.max(30,Math.min(W-30,player.x));player.y=Math.max(330,Math.min(H-35,player.y));
-  drawWorld();hint();
-  const shopBtn=document.getElementById('shopAction'), chopBtn=document.getElementById('chopAction'), shopTab=document.getElementById('shopTab');
-  shopBtn.disabled=!nearShop(); shopTab.style.display=nearShop()?'block':'none';
-  shopBtn.textContent=nearShop()?(wood>0?'🛒 СДАТЬ ДЕРЕВО':'🛒 МАГАЗИН'):'🛒 МАГАЗИН';
-  chopBtn.disabled=!hasAxe||!nearestTree();
- } else if(chopping){drawChop();chopLoop()}
- requestAnimationFrame(loop);
+function chopHit(){
+ if(!chopping)return;
+ if(needlePos>=39 && needlePos<=61){
+   progress++;
+   treeShake=12;
+   toast('Отличный удар! '+progress+'/3');
+   if(progress>=3){
+     let amount=axes[axe].carry;
+     wood+=amount;
+     currentTree.x=70+Math.random()*1060;
+     currentTree.y=340+Math.random()*300;
+     if(currentTree.x > 460 && currentTree.x < 830 && currentTree.y < 450) currentTree.y += 150;
+     
+     stopChop();
+     updateHUD();
+     toast('Нарублено дерева: +'+amount+' 🪵');
+   }
+ } else {
+   toast('Мимо! Лови зелёную зону.');
+ }
 }
-updateHUD();loop();
+
+function update(dt){
+  let sp=200 * dt;
+  if(!shopOpen && !chopping){
+   // WASD + Стрелки
+   if(keys.w || keys.arrowup || keys.ц) player.y -= sp;
+   if(keys.s || keys.arrowdown || keys.ы) player.y += sp;
+   if(keys.a || keys.arrowleft || keys.ф) player.x -= sp;
+   if(keys.d || keys.arrowright || keys.в) player.x += sp;
+   
+   // Джойстик
+   if(joyActive){
+     player.x += joyX * sp;
+     player.y += joyY * sp;
+   }
+   
+   player.x=Math.max(30,Math.min(W-30,player.x));
+   player.y=Math.max(330,Math.min(H-35,player.y));
+   
+   const shopBtn=document.getElementById('shopAction');
+   const chopBtn=document.getElementById('chopAction');
+   const shopTab=document.getElementById('shopTab');
+   
+   shopBtn.disabled=!nearShop(); 
+   shopTab.style.display=nearShop()?'block':'none';
+   shopBtn.textContent=nearShop()?(wood>0?'🛒 СДАТЬ ДЕРЕВО':'🛒 МАГАЗИН'):'🛒 МАГАЗИН';
+   chopBtn.disabled=!hasAxe||!nearestTree();
+  } else if(chopping){
+   let curSpeed = axes[axe].speed;
+   needlePos += needleDir * curSpeed * dt;
+   if(needlePos > 100){ needlePos=100; needleDir=-1; }
+   if(needlePos < 0){ needlePos=0; needleDir=1; }
+   document.getElementById('needle').style.left = needlePos + '%';
+   
+   if(treeShake > 0) treeShake -= dt * 30;
+  }
+}
+
+function loop(now){
+  let dt = (now - lastTime) / 1000;
+  if(dt > 0.1) dt = 0.1;
+  lastTime = now;
+
+  update(dt);
+
+  if(chopping){
+    drawChop();
+  } else {
+    drawWorld();
+    hint();
+  }
+  
+  requestAnimationFrame(loop);
+}
+
+updateHUD();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
