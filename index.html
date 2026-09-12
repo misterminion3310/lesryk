@@ -32,6 +32,14 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 .needle{position:absolute;top:-7px;width:6px;height:38px;background:#ffdf5c;left:0;box-shadow:2px 0 #7a5711}
 .chopUI p{background:#151b22dd;padding:10px;border:3px solid #29333c}
 #toast{position:absolute;top:76px;left:50%;transform:translateX(-50%);z-index:20;background:#151b22f2;border:3px solid #34414b;padding:10px 16px;display:none}
+#help{position:absolute;inset:0;background:#0b1118cc;display:none;align-items:center;justify-content:center;z-index:15}
+.helpbox{width:min(680px,92vw);max-height:86vh;overflow:auto;background:#1a222b;border:4px solid #3a4751;box-shadow:8px 8px 0 #070a0d;padding:20px}
+.helpbox h1{margin:0 0 12px;color:#ffd65a;font-size:28px}
+.helpbox h2{margin:14px 0 6px;color:#fff;font-size:18px}
+.helpbox p,.helpbox li{color:#c2ccd2;line-height:1.5}
+.helpbox ul{margin-top:6px;padding-left:24px}
+#helpTab{position:absolute;top:14px;right:145px;z-index:6;padding:10px 16px;background:#1b252d;color:#fff;border:3px solid #394750;box-shadow:4px 4px 0 #090c0f;font-weight:bold}
+#helpTab:hover{background:#293740}
 #start{position:absolute;inset:0;background:#111923;z-index:30;display:flex;align-items:center;justify-content:center;text-align:center}
 .startbox{max-width:620px;padding:30px}.startbox h1{font-size:48px;color:#ffd65a;text-shadow:4px 4px #5b3c1f;margin:0}.startbox p{color:#b8c4cc;line-height:1.6}.startbox button{padding:13px 26px;background:#8f633e;border:0;border-bottom:5px solid #553720;color:#fff}
 @media(max-width:700px){.chopUI{right:4%;top:12%;width:44%}.startbox h1{font-size:34px}}
@@ -53,12 +61,22 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
  <div class="panel">🪓 <span id="axeName">Ржавый топор</span></div>
 </div>
 <div id="hint" class="panel">Иди к магазину и купи первый топор</div>
+<button id="helpTab">❓ КАК ИГРАТЬ</button>
 <button id="shopTab">🛒 МАГАЗИН</button>
 <div class="actionbar">
  <button class="actionbtn shop" id="shopAction">🛒 МАГАЗИН</button>
  <button class="actionbtn chop" id="chopAction">🪓 РУБИТЬ</button>
 </div>
 
+<div id="help"><div class="helpbox">
+<h1>❓ КАК ИГРАТЬ</h1>
+<h2>🎯 Цель игры</h2><p>Руби деревья, сдавай древесину в магазин и покупай более мощные топоры.</p>
+<h2>🚶 Управление</h2><ul><li><b>WASD</b> или <b>стрелки</b> — движение.</li><li><b>🪓 РУБИТЬ</b> — рубить ближайшее дерево.</li><li><b>ESC</b> — выйти из рубки или закрыть окно.</li></ul>
+<h2>🪓 Как рубить</h2><p>Нажимай <b>🪓 УДАРИТЬ</b>, когда жёлтая линия попадает в зелёную зону. Нужно сделать <b>3 точных удара</b>. За промах прогресс не увеличивается.</p>
+<h2>💰 Как заработать</h2><p>После рубки получаешь древесину. Подойди к магазину и нажми <b>🛒 СДАТЬ ДЕРЕВО</b>. Каждое дерево приносит <b>25 $</b>.</p>
+<h2>⬆️ Топоры</h2><ul><li><b>Ржавый</b> — бесплатно, 1 древесина.</li><li><b>Стальной</b> — 100 $, 2 древесины.</li><li><b>Тяжёлый</b> — 250 $, 3 древесины.</li></ul>
+<button class="close" id="closeHelp">Закрыть [ESC]</button>
+</div></div>
 <div id="shop"><div class="shopbox">
  <h1>МАГАЗИН СЛЕСАРЯ</h1><div class="shopsub">Инструменты и улучшения</div>
  <div class="items">
@@ -147,6 +165,10 @@ function hint(){
 function openShop(){if(!nearShop())return;shopOpen=true;document.querySelector('.actionbar').style.display='none';document.getElementById('shop').style.display='flex';document.getElementById('buyBasic').disabled=hasAxe;document.getElementById('buySteel').disabled=axe>=1||money<100;document.getElementById('buyHeavy').disabled=axe>=2||money<250}
 function closeShop(){shopOpen=false;document.getElementById('shop').style.display='none';document.querySelector('.actionbar').style.display='flex'}
 document.getElementById('closeShop').onclick=closeShop;
+function openHelp(){if(!chopping)document.getElementById('help').style.display='flex'}
+function closeHelp(){document.getElementById('help').style.display='none'}
+document.getElementById('helpTab').onclick=openHelp;
+document.getElementById('closeHelp').onclick=closeHelp;
 document.getElementById('shopTab').onclick=()=>{ if(!chopping && nearShop()) openShop(); };
 document.getElementById('shopAction').onclick=()=>shopInteract();
 document.getElementById('chopAction').onclick=()=>treeInteract();
@@ -159,7 +181,7 @@ document.getElementById('startBtn').onclick=()=>document.getElementById('start')
 
 addEventListener('keydown',e=>{
  keys[e.key.toLowerCase()]=true;
- if(e.key==='Escape'){if(chopping){stopChop()}else if(shopOpen)closeShop()}
+ if(e.key==='Escape'){if(chopping){stopChop()}else if(shopOpen)closeShop();else closeHelp()}
 
 });
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
