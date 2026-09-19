@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>Лесоруб PRO — 6 Миров Edition</title>
+<title>Лесоруб PRO</title>
 <style>
 *{box-sizing:border-box;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090d12;font-family:'Segoe UI',Roboto,sans-serif}
@@ -22,21 +22,22 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 .nav-btn:hover,.nav-btn.active{background:#4f7044;border-color:#73a164;transform:translateY(-2px)}
 .nav-btn.edit-active{background:#d35400;border-color:#e67e22}
 
-/* Выбор миров на главном экране */
+/* Выбор миров */
 .world-selector{position:absolute;top:70px;left:16px;display:flex;gap:6px;z-index:6;flex-wrap:wrap;max-width:500px}
 .world-btn{padding:6px 12px;background:rgba(21,27,34,0.85);color:#aaa;border:1px solid rgba(255,255,255,0.15);border-radius:6px;font-size:12px;font-weight:bold;transition:0.2s}
 .world-btn:hover:not(:disabled){color:#fff;border-color:rgba(255,255,255,0.4)}
 .world-btn.active{background:#2980b9;color:#fff;border-color:#3498db}
 .world-btn:disabled{opacity:0.4;cursor:not-allowed;background:rgba(10,10,10,0.6)}
 
-/* Управление этажами в доме */
-.floor-controls{position:absolute;top:70px;right:16px;display:none;flex-direction:column;gap:6px;z-index:6}
-.floor-btn{padding:8px 12px;background:rgba(21,27,34,0.85);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;font-size:12px;font-weight:bold}
-.floor-btn.active{background:#2980b9;border-color:#3498db}
+/* Управление этажами */
+.home-controls{position:absolute;top:70px;right:16px;display:none;flex-direction:column;align-items:flex-end;gap:10px;z-index:6}
+.control-group{display:flex;gap:6px;background:rgba(21,27,34,0.85);padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.15)}
+.control-btn{padding:6px 10px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:6px;font-size:11px;font-weight:bold}
+.control-btn.active{background:#2980b9;border-color:#3498db}
 
 #hint{position:absolute;left:50%;bottom:85px;transform:translateX(-50%);z-index:5;text-align:center;min-width:280px;border-radius:20px}
 
-/* Модальные окна */
+/* Модальное окно магазина */
 .modal{position:absolute;inset:0;background:rgba(11,17,24,0.75);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:15}
 .modal-box{width:min(860px,94vw);max-height:86vh;overflow:auto;background:#161f28;border:2px solid #3a4751;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,0.6);padding:24px}
 .modal-box h1{margin:0 0 6px;color:#ffd65a;font-size:26px}
@@ -44,12 +45,20 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 .grid-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .card{background:#0e151d;border:2px solid #28343f;border-radius:10px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;transition:0.2s}
 .card:hover{border-color:#536677}
-.card h3{margin:0 0 6px;font-size:15px;color:#fff}.card p{color:#8c9ea9;font-size:12px;margin-bottom:12px;line-height:1.4}
+.card.owned{border-color:#27ae60;background:#0d2318}
+.card.active-axe{border-color:#f1c40f;background:#26210e}
+.card h3{margin:0 0 6px;font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
+
+.card-preview{width:40px;height:40px;object-fit:contain;background:rgba(255,255,255,0.05);border-radius:6px;padding:2px}
+
+.card p{color:#8c9ea9;font-size:12px;margin-bottom:12px;line-height:1.4}
 .btn-buy{width:100%;padding:10px;background:#8f633e;color:#fff;border:0;border-radius:6px;font-weight:bold;transition:0.2s}
 .btn-buy:hover{background:#a8744a}.btn-buy:disabled{background:#2a333a;color:#616e77;cursor:not-allowed}
+.btn-select{background:#27ae60}.btn-select:hover{background:#2ecc71}
+.btn-equipped{background:#f1c40f;color:#000;cursor:default}.btn-equipped:hover{background:#f1c40f}
 .close-btn{margin-top:18px;padding:10px 20px;background:#24303a;color:#fff;border:1px solid #44535f;border-radius:6px}
 
-/* Экран рубки */
+/* Рубка */
 #chop{position:absolute;inset:0;display:none;z-index:8;background:#000}
 #chopCanvas{position:absolute;inset:0;width:100%;height:100%}
 .chopUI{position:absolute;right:6%;top:15%;width:min(340px,80vw)}
@@ -61,22 +70,20 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 .needle{position:absolute;top:0;bottom:0;width:6px;background:#ffeb3b;left:0%;transform:translateX(-50%);box-shadow:0 0 10px #ffeb3b}
 #toast{position:absolute;top:75px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(21,27,34,0.95);border:2px solid #455765;padding:10px 20px;border-radius:20px;display:none;pointer-events:none;font-weight:bold}
 
-/* Кнопки управления */
 .actionbar{position:absolute;right:20px;bottom:20px;z-index:7;display:flex;flex-direction:column;gap:12px}
 .actionbtn{min-width:140px;padding:14px 20px;background:#27333c;color:#fff;border:2px solid rgba(255,255,255,0.2);border-radius:10px;box-shadow:0 6px 16px rgba(0,0,0,0.4);font-weight:bold;font-size:15px;touch-action:manipulation;transition:0.15s}
 .actionbtn:active{transform:scale(0.96)}
 .actionbtn.shop{background:linear-gradient(135deg,#8f633e,#6d482c)}
 .actionbtn.chop{background:linear-gradient(135deg,#4f7044,#37522f)}
 
-/* Джойстик */
-#joystickArea{display:none;position:absolute;left:20px;bottom:20px;width:120px;height:120px;background:rgba(255,255,255,0.08);border:2px dashed rgba(255,255,255,0.25);border-radius:50%;z-index:7;touch-action:none}
+#joystickArea{display:none;position:absolute;left:20px;bottom:20px;width:120px;height:120px;background:rgba(255,214,90,0.08);border:2px dashed rgba(255,255,255,0.25);border-radius:50%;z-index:7;touch-action:none}
 #joystickStick{position:absolute;left:35px;top:35px;width:50px;height:50px;background:rgba(255,214,90,0.5);border:2px solid #ffd65a;border-radius:50%;pointer-events:none;box-shadow:0 0 15px rgba(255,214,90,0.3)}
 
 @media(max-width:700px){
   .hud{font-size:12px}
   .world-selector{top:110px;left:16px}
   .nav-tabs{top:auto;bottom:20px;left:20px;right:auto;flex-direction:column}
-  .floor-controls{top:auto;bottom:160px;right:20px}
+  .home-controls{top:auto;bottom:160px;right:20px}
   #joystickArea{left:20px;bottom:150px}
   #hint{bottom:140px;font-size:12px}
   .chopUI{left:10%;right:10%;width:80%;top:8%}
@@ -99,13 +106,19 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
  <button class="nav-btn active" id="btnWorld">🗺️ МИР</button>
  <button class="nav-btn" id="btnHome">🏠 ДОМ</button>
  <button class="nav-btn" id="btnEdit" style="display:none">✏️ МЕБЕЛЬ</button>
+ <button class="nav-btn" id="btnScaleUp" style="display:none">🔍+</button>
+ <button class="nav-btn" id="btnScaleDown" style="display:none">🔍-</button>
+ <button class="nav-btn" id="btnFlip" style="display:none">🪞 ОТЗЕРКАЛИТЬ</button>
  <button class="nav-btn" id="btnShop">🛒 МАГАЗИН</button>
 </div>
 
-<div class="floor-controls" id="floorControls">
- <button class="floor-btn active" id="btnFloor1">1 Этаж</button>
- <button class="floor-btn" id="btnFloor2" style="display:none">2 Этаж</button>
- <button class="floor-btn" id="btnFloor3" style="display:none">3 Этаж</button>
+<!-- Управление этажами -->
+<div class="home-controls" id="homeControls">
+ <div class="control-group">
+   <button class="control-btn active" id="btnFloor1">1 Этаж</button>
+   <button class="control-btn" id="btnFloor2" style="display:none">2 Этаж</button>
+   <button class="control-btn" id="btnFloor3" style="display:none">3 Этаж</button>
+ </div>
 </div>
 
 <div id="hint" class="panel">Перемещайся и подойди к магазину</div>
@@ -117,16 +130,17 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
  <button class="actionbtn chop" id="chopAction">🪓 РУБИТЬ</button>
 </div>
 
+<!-- Модальное окно магазина -->
 <div id="shopModal" class="modal"><div class="modal-box">
  <h1>МАГАЗИН ЛЕСОРУБА</h1>
- <div class="modal-sub">Топоры, декор, этажи и новые миры</div>
+ <div class="modal-sub">Покупка мебели, топоров и локаций</div>
  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
    <button class="nav-btn active" id="tabAxes">Топоры</button>
    <button class="nav-btn" id="tabBiomes">Локации (6)</button>
    <button class="nav-btn" id="tabFurniture">Мебель</button>
    <button class="nav-btn" id="tabHouse">Дом</button>
  </div>
- <div class="grid-items" id="shopItems"></div>
+ <div id="shopContent"></div>
  <button class="close-btn" id="closeShop">Закрыть [ESC]</button>
 </div></div>
 
@@ -155,47 +169,118 @@ const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 
 
 let money=0, wood=0, axe=-1, hasAxe=false, currentZone='world'; 
 let currentBiome=0, currentFloor=1, unlockedFloors=1;
-let editMode=false, draggingItem=null, dragOffsetX=0, dragOffsetY=0;
+let editMode=false, draggingItem=null, selectedItem=null, dragOffsetX=0, dragOffsetY=0;
 let chopping=false, progress=0, needlePos=0, needleDir=1;
 let axeSwingAnim=0;
 let player={x:600, y:420, vx:0, vy:0, walkFrame:0, facing:'right'};
 let keys={}, trees=[], particles=[];
 let currentTree=null, screenShake=0, lastTime=performance.now();
 
+const shopBounds = { x: 480, y: 150, w: 320, h: 250 };
+
 let placedFurniture=[
-  {id:'bed', x:250, y:280, w:120, h:70, floor:1, rot:0},
-  {id:'table', x:650, y:340, w:90, h:55, floor:1, rot:0}
+  {id:'carpet', x:630, y:320, w:130, h:80, floor:1, flipX:false, scale:1, layer:0},
+  {id:'bed', x:300, y:300, w:120, h:70, floor:1, flipX:false, scale:1, layer:1},
+  {id:'table', x:650, y:340, w:90, h:55, floor:1, flipX:false, scale:1, layer:1},
+  {id:'tv', x:655, y:330, w:80, h:50, floor:1, flipX:false, scale:1, layer:2}
 ];
 
 const axes=[
-  {name:'Каменный топор', speed:80, power:1, price:0, bladeColor:'#888', handleColor:'#654321', double:false, glow:null},
-  {name:'Ржавый топор', speed:110, power:2, price:80, bladeColor:'#b85d3b', handleColor:'#52361b', double:false, glow:null},
-  {name:'Стальной топор', speed:140, power:4, price:200, bladeColor:'#d1d8e0', handleColor:'#3d2716', double:false, glow:null},
-  {name:'Железный Боевой', speed:170, power:7, price:450, bladeColor:'#718093', handleColor:'#2f3542', double:true, glow:null},
-  {name:'Золотой топор', speed:200, power:12, price:900, bladeColor:'#f1c40f', handleColor:'#7f8c8d', double:false, glow:'#f39c12'},
-  {name:'Изумрудный Секач', speed:230, power:20, price:1800, bladeColor:'#2ecc71', handleColor:'#112211', double:true, glow:'#27ae60'},
-  {name:'Мифриловый топор', speed:270, power:32, price:3500, bladeColor:'#00d2d3', handleColor:'#222f3e', double:true, glow:'#48dbfb'},
-  {name:'Магматический', speed:310, power:50, price:7000, bladeColor:'#ff4757', handleColor:'#1e272e', double:true, glow:'#ff6b81'},
-  {name:'Астральный Левиафан', speed:360, power:85, price:15000, bladeColor:'#a55eea', handleColor:'#1e152a', double:true, glow:'#8854d0'}
+  {id:'axe_stone', name:'Каменный топор', speed:80, power:1, price:0, owned:true, image:'images/axe_stone.png', glow:null},
+  {id:'axe_rusty', name:'Ржавый топор', speed:110, power:2, price:80, owned:false, image:'images/axe_rusty.png', glow:null},
+  {id:'axe_steel', name:'Стальной топор', speed:140, power:4, price:200, owned:false, image:'images/axe_steel.png', glow:null},
+  {id:'axe_battle', name:'Железный Боевой', speed:170, power:7, price:450, owned:false, image:'images/axe_battle.png', glow:null},
+  {id:'axe_gold', name:'Золотой топор', speed:200, power:12, price:900, owned:false, image:'images/axe_gold.png', glow:'#f39c12'},
+  {id:'axe_emerald', name:'Изумрудный Секач', speed:230, power:20, price:1800, owned:false, image:'images/axe_emerald.png', glow:'#27ae60'},
+  {id:'axe_mithril', name:'Мифриловый топор', speed:270, power:32, price:3500, owned:false, image:'images/axe_mithril.png', glow:'#48dbfb'},
+  {id:'axe_magma', name:'Магматический', speed:310, power:50, price:7000, owned:false, image:'images/axe_magma.png', glow:'#ff6b81'},
+  {id:'axe_astral', name:'Астральный Левиафан', speed:360, power:85, price:15000, owned:false, image:'images/axe_astral.png', glow:'#8854d0'}
 ];
 
 const biomes=[
-  {name:'🌲 Альпийская Долина', bg1:'#a4c8e1', bg2:'#599670', treeColor:'#26633b', woodVal:15, treeHp:5, unlocked:true, price:0},
-  {name:'❄️ Заснеженный Пик', bg1:'#c5d8e6', bg2:'#839dae', treeColor:'#2c4c5e', woodVal:45, treeHp:12, unlocked:false, price:250},
-  {name:'🔮 Мистический Лес', bg1:'#362647', bg2:'#322443', treeColor:'#8e388f', woodVal:110, treeHp:25, unlocked:false, price:800},
-  {name:'🏜️ Песчаный Каньон', bg1:'#f3a683', bg2:'#c44569', treeColor:'#778ca3', woodVal:250, treeHp:45, unlocked:false, price:2000},
-  {name:'🌋 Вулканический Пустырь', bg1:'#2f3542', bg2:'#57606f', treeColor:'#ff4757', woodVal:600, treeHp:75, unlocked:false, price:5000},
-  {name:'🌌 Астральный Космос', bg1:'#0f0c29', bg2:'#24243e', treeColor:'#00d2d3', woodVal:1500, treeHp:120, unlocked:false, price:12000}
+  {id:'alpine', name:'Альпийская Долина', image:'images/biome_alpine.png', bg1:'#a4c8e1', bg2:'#599670', colors:['#26633b', '#1d4a2c', '#388e53'], woodVal:15, treeHp:5, unlocked:true, price:0},
+  {id:'snow', name:'Заснеженный Пик', image:'images/biome_snow.png', bg1:'#c5d8e6', bg2:'#839dae', colors:['#3a5f75', '#243e4d', '#53829e'], woodVal:45, treeHp:12, unlocked:false, price:250},
+  {id:'mystic', name:'Мистический Лес', image:'images/biome_mystic.png', bg1:'#362647', bg2:'#322443', colors:['#8e388f', '#551f56', '#b84dc0'], woodVal:110, treeHp:25, unlocked:false, price:800},
+  {id:'canyon', name:'Песчаный Каньон', image:'images/biome_canyon.png', bg1:'#f3a683', bg2:'#c44569', colors:['#5a6b7c', '#3d4b58', '#7b92ab'], woodVal:250, treeHp:45, unlocked:false, price:2000},
+  {id:'volcano', name:'Вулканический Пустырь', image:'images/biome_volcano.png', bg1:'#2f3542', bg2:'#57606f', colors:['#d63031', '#8b0000', '#ff7675'], woodVal:600, treeHp:75, unlocked:false, price:5000},
+  {id:'space', name:'Астральный Космос', image:'images/biome_space.png', bg1:'#0f0c29', bg2:'#24243e', colors:['#00cec9', '#0984e3', '#74b9ff'], woodVal:1500, treeHp:120, unlocked:false, price:12000}
 ];
 
 const furnitureCatalog=[
-  {id:'bed', name:'Кровать', price:100, icon:'🛏️', w:120, h:70},
-  {id:'table', name:'Обеденный Стол', price:60, icon:'🪵', w:90, h:55},
-  {id:'carpet', name:'Персидский Ковёр', price:50, icon:'🟫', w:130, h:80},
-  {id:'chair', name:'Кресло', price:45, icon:'🪑', w:50, h:50},
-  {id:'plant', name:'Комнатное Дерево', price:65, icon:'🪴', w:40, h:40},
-  {id:'tv', name:'Плазменный ТВ', price:200, icon:'📺', w:80, h:50}
+  {id:'carpet', name:'Персидский Ковёр', price:50, image:'images/carpet.png', w:130, h:80, layer:0},
+  {id:'bed', name:'Кровать', price:100, image:'images/bed.png', w:120, h:70, layer:1},
+  {id:'table', name:'Обеденный Стол', price:60, image:'images/table.png', w:90, h:55, layer:1},
+  {id:'chair', name:'Кресло', price:45, image:'images/chair.png', w:50, h:50, layer:1},
+  {id:'plant', name:'Комнатное Дерево', price:65, image:'images/plant.png', w:40, h:40, layer:2},
+  {id:'tv', name:'Плазменный ТВ', price:200, image:'images/tv.png', w:80, h:50, layer:2}
 ];
+
+const loadedImages = {};
+
+biomes.forEach(biome => {
+  const bImg = new Image();
+  bImg.src = biome.image;
+  loadedImages[biome.id] = bImg;
+});
+
+furnitureCatalog.forEach(item => {
+  const img = new Image();
+  img.src = item.image;
+  loadedImages[item.id] = img;
+});
+
+axes.forEach(a => {
+  const img = new Image();
+  img.src = a.image;
+  loadedImages[a.id] = img;
+});
+
+function saveGame(){
+  const saveData = {
+    money, wood, axe, hasAxe, currentBiome, unlockedFloors,
+    ownedAxes: axes.map(a => a.owned),
+    unlockedBiomes: biomes.map(b => b.unlocked),
+    placedFurniture
+  };
+  localStorage.setItem('lumberjack_save', JSON.stringify(saveData));
+}
+
+function loadGame(){
+  const dataStr = localStorage.getItem('lumberjack_save');
+  if(!dataStr) return;
+  try {
+    const saveData = JSON.parse(dataStr);
+    if(saveData.money !== undefined) money = saveData.money;
+    if(saveData.wood !== undefined) wood = saveData.wood;
+    if(saveData.axe !== undefined) axe = saveData.axe;
+    if(saveData.hasAxe !== undefined) hasAxe = saveData.hasAxe;
+    if(saveData.currentBiome !== undefined) currentBiome = saveData.currentBiome;
+    if(saveData.unlockedFloors !== undefined) unlockedFloors = saveData.unlockedFloors;
+    if(saveData.ownedAxes && Array.isArray(saveData.ownedAxes)){
+      saveData.ownedAxes.forEach((owned, idx) => {
+        if(axes[idx]) axes[idx].owned = owned;
+      });
+    }
+    if(saveData.unlockedBiomes && Array.isArray(saveData.unlockedBiomes)){
+      saveData.unlockedBiomes.forEach((unlocked, idx) => {
+        if(biomes[idx]) biomes[idx].unlocked = unlocked;
+      });
+    }
+    if(saveData.placedFurniture && Array.isArray(saveData.placedFurniture)){
+      placedFurniture = saveData.placedFurniture.map(f => {
+        let cat = furnitureCatalog.find(c => c.id === f.id);
+        return {
+          ...f,
+          flipX: f.flipX || false,
+          scale: f.scale || 1,
+          layer: f.layer !== undefined ? f.layer : (cat ? cat.layer : 1)
+        };
+      });
+    }
+  } catch(e) {
+    console.error('Ошибка загрузки:', e);
+  }
+}
 
 function resize(){world.width=W;world.height=H;cc.width=W;cc.height=H} 
 resize(); addEventListener('resize',resize);
@@ -206,20 +291,14 @@ function toast(t){
   clearTimeout(toast.t); toast.t=setTimeout(()=>e.style.display='none',2000);
 }
 
-// ПРОВЕРКА: находится ли точка возле магазина
-function isNearShopArea(x, y){
-  return (x >= 460 && x <= 760 && y >= 140 && y <= 460);
-}
+function isNearShopArea(x, y){ return (x >= 430 && x <= 770 && y >= 120 && y <= 450); }
 
-// Генерация валидной позиции для дерева вне территории магазина
 function getRandomTreePos(){
   let x, y, safe = false;
   while(!safe){
-    x = 100 + Math.random() * 1000;
-    y = 300 + Math.random() * 340;
-    if(!isNearShopArea(x, y)){
-      safe = true;
-    }
+    x = 60 + Math.random() * 1080;
+    y = 290 + Math.random() * 370;
+    if(!isNearShopArea(x, y)) safe = true;
   }
   return {x, y};
 }
@@ -227,32 +306,19 @@ function getRandomTreePos(){
 function spawnTrees(){
   trees=[];
   let b = biomes[currentBiome];
-  for(let i=0; i<10; i++){
+  for(let i=0; i<25; i++){
     let pos = getRandomTreePos();
-    trees.push({
-      x: pos.x, 
-      y: pos.y, 
-      hp: b.treeHp, 
-      maxHp: b.treeHp, 
-      type: currentBiome, 
-      scale: 0.9 + Math.random()*0.2
-    });
+    trees.push({ x: pos.x, y: pos.y, hp: b.treeHp, maxHp: b.treeHp, type: currentBiome, scale: 0.9 + Math.random()*0.2 });
   }
 }
+
+loadGame();
 spawnTrees();
 
-// Создание нового дерева взамен срубленного
 function createSingleTree(){
   let b = biomes[currentBiome];
   let pos = getRandomTreePos();
-  trees.push({
-    x: pos.x, 
-    y: pos.y, 
-    hp: b.treeHp, 
-    maxHp: b.treeHp, 
-    type: currentBiome, 
-    scale: 0.9 + Math.random()*0.2
-  });
+  trees.push({ x: pos.x, y: pos.y, hp: b.treeHp, maxHp: b.treeHp, type: currentBiome, scale: 0.9 + Math.random()*0.2 });
 }
 
 function renderWorldSelector(){
@@ -263,13 +329,14 @@ function renderWorldSelector(){
     let btn = document.createElement('button');
     btn.className = `world-btn ${currentBiome === idx ? 'active' : ''}`;
     btn.disabled = !b.unlocked;
-    btn.textContent = b.unlocked ? b.name.split(' ')[0] + ' ' + b.name.split(' ')[1] : '🔒 Lock';
+    btn.textContent = b.unlocked ? b.name : '🔒 Lock';
     btn.title = b.name;
     btn.onclick = () => {
       if(b.unlocked){
         currentBiome = idx;
         spawnTrees();
         renderWorldSelector();
+        saveGame();
         toast(`Переход в: ${b.name}`);
       }
     };
@@ -277,53 +344,42 @@ function renderWorldSelector(){
   });
 }
 
-function drawAxeSprite(ctx, x, y, axeData, angle){
+function drawAxeSprite(ctx, x, y, axeData, angle, maxDimension = 130){
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
 
-  if(axeData.glow){
-    ctx.shadowColor = axeData.glow;
-    ctx.shadowBlur = 20;
+  if(axeData.glow){ 
+    ctx.shadowColor = axeData.glow; 
+    ctx.shadowBlur = 30; 
   }
 
-  ctx.fillStyle = axeData.handleColor;
-  ctx.fillRect(-6, -80, 12, 100);
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.fillRect(0, -80, 6, 100);
+  let img = loadedImages[axeData.id];
+  if(img && img.complete && img.naturalWidth !== 0){
+    let aspect = img.naturalWidth / img.naturalHeight;
+    let w, h;
 
-  ctx.fillStyle = axeData.bladeColor;
-  ctx.beginPath();
-  if(!axeData.double){
-    ctx.moveTo(0, -75);
-    ctx.lineTo(-45, -95);
-    ctx.lineTo(-40, -45);
-    ctx.lineTo(0, -55);
+    if(aspect >= 1){
+      w = maxDimension;
+      h = maxDimension / aspect;
+    } else {
+      h = maxDimension;
+      w = maxDimension * aspect;
+    }
+
+    ctx.drawImage(img, -w/2, -h + 20, w, h);
   } else {
-    ctx.moveTo(0, -75);
-    ctx.lineTo(-45, -95);
-    ctx.lineTo(-40, -45);
-    ctx.lineTo(0, -55);
-    ctx.lineTo(40, -45);
-    ctx.lineTo(45, -95);
+    ctx.fillStyle = '#888'; 
+    ctx.fillRect(-8, -100, 16, 120);
   }
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 3;
-  ctx.stroke();
 
   ctx.restore();
 }
 
 function drawWorld(){
  ctx.clearRect(0,0,W,H);
- 
  ctx.save();
- if(screenShake>0){
-    ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
- }
+ if(screenShake>0) ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
 
  if(currentZone==='world'){
     let b=biomes[currentBiome];
@@ -333,11 +389,8 @@ function drawWorld(){
 
     ctx.fillStyle='#00000018';
     for(let i=0;i<3;i++){
-      ctx.beginPath();
-      ctx.moveTo(-50,260);
-      for(let x=0;x<=W+50;x+=100){
-        ctx.lineTo(x, 180 + Math.sin(x*0.01 + i)*40 + i*20);
-      }
+      ctx.beginPath(); ctx.moveTo(-50,260);
+      for(let x=0;x<=W+50;x+=100) ctx.lineTo(x, 180 + Math.sin(x*0.01 + i)*40 + i*20);
       ctx.lineTo(W+50,300); ctx.fill();
     }
 
@@ -346,124 +399,418 @@ function drawWorld(){
     for(let y=270;y<H;y+=20) ctx.fillRect(0,y,W,8);
 
     drawStore();
-    trees.slice().sort((a,b)=>a.y-b.y).forEach(t=>drawDetailedTree(t.x, t.y, t.type, t.scale));
+
+    let renderList = trees.map(t => ({type: 'tree', y: t.y, data: t}));
+    renderList.push({type: 'player', y: player.y, data: player});
+    renderList.sort((a, b) => a.y - b.y);
+
+    renderList.forEach(item => {
+      if(item.type === 'tree') drawDetailedTree(item.data.x, item.data.y, item.data.type, item.data.scale);
+      else if(!editMode || currentZone!=='home') drawLumberjack(player.x, player.y);
+    });
 
  } else if(currentZone==='home'){
     drawHomeInterior();
+    if(!editMode || currentZone!=='home') drawLumberjack(player.x, player.y);
  }
 
  updateAndDrawParticles();
- if(!editMode || currentZone!=='home') drawLumberjack(player.x, player.y);
-
  ctx.restore();
 }
 
+/* Переработанная модель магазина с высокодетализированной графикой */
 function drawStore(){
- ctx.fillStyle='#4a2e1b'; ctx.fillRect(520,240,240,160);
- ctx.fillStyle='#362011'; ctx.fillRect(540,240,200,160);
- ctx.fillStyle='#b84a39';
- ctx.beginPath(); ctx.moveTo(500,240); ctx.lineTo(640,160); ctx.lineTo(780,240); ctx.fill();
- ctx.fillStyle='#8a3325';
- ctx.beginPath(); ctx.moveTo(500,240); ctx.lineTo(640,175); ctx.lineTo(780,240); ctx.fill();
- ctx.fillStyle='#ffd65a'; ctx.fillRect(570,195,140,32);
- ctx.fillStyle='#111'; ctx.font='bold 16px monospace'; ctx.fillText('МАГАЗИН',595,217);
- ctx.fillStyle='#1c120c'; ctx.fillRect(630,310,45,90);
- ctx.fillStyle='#ffecb3'; ctx.fillRect(560,310,45,45);
- ctx.fillStyle='#362011'; ctx.fillRect(580,310,5,45); ctx.fillRect(560,330,45,5);
+  ctx.save();
+  const sx = 460, sy = 160;
+
+  // 1. Мягкая реалистичная тень от здания на земле
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+  ctx.beginPath();
+  ctx.ellipse(sx + 140, sy + 230, 160, 22, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Каменный фундамент
+  ctx.fillStyle = '#2b2d2f';
+  ctx.fillRect(sx, sy + 205, 280, 25);
+  ctx.fillStyle = '#1e2022';
+  for(let x = sx; x < sx + 280; x += 35){
+    ctx.fillRect(x, sy + 205, 2, 25);
+  }
+  ctx.fillRect(sx, sy + 217, 280, 2);
+
+  // 3. Основной сруб магазина (с фактурой деревянных брусьев)
+  let wallGrad = ctx.createLinearGradient(sx, 0, sx + 280, 0);
+  wallGrad.addColorStop(0, '#3a2012');
+  wallGrad.addColorStop(0.1, '#5c351e');
+  wallGrad.addColorStop(0.9, '#5c351e');
+  wallGrad.addColorStop(1, '#2e180c');
+  
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(sx + 10, sy + 75, 260, 130);
+
+  // Швы между брусьями
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  for(let y = sy + 90; y < sy + 205; y += 15) {
+    ctx.fillRect(sx + 10, y, 260, 3);
+  }
+
+  // Боковые опорные балки (вертикальные)
+  ctx.fillStyle = '#3a2012';
+  ctx.fillRect(sx + 8, sy + 75, 14, 130);
+  ctx.fillRect(sx + 258, sy + 75, 14, 130);
+
+  // 4. Окна с подсветкой и бликами
+  function drawWindow(wx, wy) {
+    // Внутренний свет
+    let winGlow = ctx.createRadialGradient(wx + 20, wy + 25, 5, wx + 20, wy + 25, 30);
+    winGlow.addColorStop(0, '#fff4a3');
+    winGlow.addColorStop(1, '#e67e22');
+    ctx.fillStyle = winGlow;
+    ctx.fillRect(wx, wy, 40, 50);
+
+    // Рама
+    ctx.fillStyle = '#23140a';
+    ctx.fillRect(wx - 3, wy - 3, 46, 3);
+    ctx.fillRect(wx - 3, wy + 50, 46, 5);
+    ctx.fillRect(wx - 3, wy - 3, 3, 56);
+    ctx.fillRect(wx + 40, wy - 3, 3, 56);
+    ctx.fillRect(wx + 18, wy, 4, 50);
+    ctx.fillRect(wx, wy + 23, 40, 4);
+
+    // Подконник
+    ctx.fillStyle = '#4a2b16';
+    ctx.fillRect(wx - 6, wy + 50, 52, 5);
+
+    // Блик на стекле
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.beginPath();
+    ctx.moveTo(wx + 5, wy + 5);
+    ctx.lineTo(wx + 25, wy + 5);
+    ctx.lineTo(wx + 10, wy + 35);
+    ctx.lineTo(wx + 5, wy + 35);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawWindow(sx + 35, sy + 100);
+  drawWindow(sx + 205, sy + 100);
+
+  // 5. Двухстворчатая входная дверь
+  let doorX = sx + 115, doorY = sy + 115;
+  ctx.fillStyle = '#2a160a';
+  ctx.fillRect(doorX - 4, doorY - 4, 58, 94); // Арка/Рама
+
+  ctx.fillStyle = '#422413';
+  ctx.fillRect(doorX, doorY, 50, 90);
+  
+  // Филёнки двери
+  ctx.fillStyle = '#2d180c';
+  ctx.fillRect(doorX + 5, doorY + 8, 18, 32);
+  ctx.fillRect(doorX + 27, doorY + 8, 18, 32);
+  ctx.fillRect(doorX + 5, doorY + 48, 18, 34);
+  ctx.fillRect(doorX + 27, doorY + 48, 18, 34);
+
+  // Ручка двери и замочная скважина
+  ctx.fillStyle = '#f1c40f';
+  ctx.beginPath();
+  ctx.arc(doorX + 42, doorY + 48, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Лампа над дверью
+  ctx.fillStyle = '#d35400';
+  ctx.fillRect(doorX + 21, doorY - 14, 8, 10);
+  ctx.fillStyle = '#f39c12';
+  ctx.beginPath();
+  ctx.arc(doorX + 25, doorY - 14, 8, Math.PI, 0);
+  ctx.fill();
+  
+  // Свечение фонаря
+  let lanternGlow = ctx.createRadialGradient(doorX + 25, doorY - 10, 2, doorX + 25, doorY - 10, 35);
+  lanternGlow.addColorStop(0, 'rgba(241, 196, 15, 0.6)');
+  lanternGlow.addColorStop(1, 'rgba(241, 196, 15, 0)');
+  ctx.fillStyle = lanternGlow;
+  ctx.beginPath();
+  ctx.arc(doorX + 25, doorY - 10, 35, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Коврик "ВХОД" перед дверью
+  ctx.fillStyle = '#111820';
+  ctx.fillRect(doorX - 10, sy + 212, 70, 16);
+  ctx.strokeStyle = '#e67e22';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(doorX - 8, sy + 214, 66, 12);
+
+  // 6. Фронтон и большая объёмная крыша
+  // Фронтон (треугольник под крышей)
+  ctx.fillStyle = '#422413';
+  ctx.beginPath();
+  ctx.moveTo(sx + 5, sy + 75);
+  ctx.lineTo(sx + 140, sy + 15);
+  ctx.lineTo(sx + 275, sy + 75);
+  ctx.closePath();
+  ctx.fill();
+
+  // Чердачное окошко
+  ctx.fillStyle = '#1a0d06';
+  ctx.beginPath();
+  ctx.arc(sx + 140, sy + 50, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#8d5524';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Черепица крыши
+  ctx.fillStyle = '#7f2315'; // Базовый терракотовый
+  ctx.beginPath();
+  ctx.moveTo(sx - 15, sy + 80);
+  ctx.lineTo(sx + 140, sy + 5);
+  ctx.lineTo(sx + 295, sy + 80);
+  ctx.lineTo(sx + 280, sy + 90);
+  ctx.lineTo(sx + 140, sy + 20);
+  ctx.lineTo(sx - 0, sy + 90);
+  ctx.closePath();
+  ctx.fill();
+
+  // Верхний край крыши (конёк)
+  ctx.fillStyle = '#a93226';
+  ctx.beginPath();
+  ctx.moveTo(sx - 20, sy + 82);
+  ctx.lineTo(sx + 140, sy + 2);
+  ctx.lineTo(sx + 300, sy + 82);
+  ctx.lineTo(sx + 290, sy + 74);
+  ctx.lineTo(sx + 140, sy + 10);
+  ctx.lineTo(sx - 10, sy + 74);
+  ctx.closePath();
+  ctx.fill();
+
+  // 7. Декоративная вывеска "МАГАЗИН"
+  let signX = sx + 50, signY = sy + 58;
+  
+  // Цепи вывески
+  ctx.strokeStyle = '#7f8c8d';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(signX + 20, signY - 8); ctx.lineTo(signX + 20, signY);
+  ctx.moveTo(signX + 160, signY - 8); ctx.lineTo(signX + 160, signY);
+  ctx.stroke();
+
+  // Доска вывески
+  ctx.fillStyle = '#2c1609';
+  ctx.fillRect(signX, signY, 180, 34);
+  ctx.strokeStyle = '#f1c40f';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(signX + 3, signY + 3, 174, 28);
+
+  // Текст на вывеске
+  ctx.fillStyle = '#ffd65a';
+  ctx.font = '900 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 4;
+  ctx.fillText('МАГАЗИН 🛒', signX + 90, signY + 23);
+  ctx.shadowBlur = 0; // Сброс тени
+  ctx.textAlign = 'left';
+
+  // 8. Декоративные кашпо с цветами по бокам
+  ctx.fillStyle = '#8e44ad';
+  ctx.fillRect(sx + 25, sy + 195, 15, 12);
+  ctx.fillRect(sx + 240, sy + 195, 15, 12);
+  ctx.fillStyle = '#2ecc71';
+  ctx.beginPath();
+  ctx.arc(sx + 32, sy + 192, 10, 0, Math.PI * 2);
+  ctx.arc(sx + 247, sy + 192, 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 9. Анимированная подсказка "Сдать дерево", если есть древесина
+  if(wood > 0) {
+    let bounce = Math.sin(performance.now() * 0.006) * 4;
+    ctx.fillStyle = '#27ae60';
+    ctx.fillRect(sx + 80, sy - 35 + bounce, 120, 26);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sx + 80, sy - 35 + bounce, 120, 26);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('💰 СДАТЬ ДЕРЕВО', sx + 140, sy - 18 + bounce);
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
 }
 
-function drawDetailedTree(x,y,type,scale){
- ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
- let b=biomes[type];
+/* Новая улучшенная процедурная отрисовка деревьев */
+function drawDetailedTree(x, y, type, scale) {
+  ctx.save();
+  let isBehind = (player.y < y) && (Math.abs(player.x - x) < 45) && (Math.abs(player.y - y) < 85);
+  if(isBehind) ctx.globalAlpha = 0.75;
 
- ctx.fillStyle='rgba(0,0,0,0.2)';
- ctx.beginPath(); ctx.ellipse(0, 55, 30, 10, 0, 0, Math.PI*2); ctx.fill();
+  ctx.translate(x, y);
+  
+  // Легкий эффект покачивания от ветра
+  let wind = Math.sin(performance.now() * 0.002 + x) * 2;
+  ctx.scale(scale, scale);
 
- ctx.fillStyle='#4e321f'; ctx.fillRect(-12, -10, 24, 65);
- ctx.fillStyle='#362214'; ctx.fillRect(-4, -10, 8, 65);
+  let b = biomes[type];
 
- let colors=[b.treeColor, '#1d4a2c', '#388e53'];
- if(type===1) colors=['#2c4c5e','#1b323f','#436e86'];
- if(type===2) colors=['#8e388f','#551f56','#b84dc0'];
- if(type===3) colors=['#778ca3','#4b6584','#3867d6'];
- if(type===4) colors=['#ff4757','#ff6b81','#c0392b'];
- if(type===5) colors=['#00d2d3','#54a0ff','#5f27cd'];
+  // 1. Мягкая реалистичная тень на земле
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  ctx.beginPath();
+  ctx.ellipse(0, 12, 32, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
 
- colors.forEach((c, i)=>{
-    ctx.fillStyle=c;
+  // 2. Ствол дерева с сучком и градиентной корой
+  let trunkGrad = ctx.createLinearGradient(-12, 0, 12, 0);
+  trunkGrad.addColorStop(0, '#2e1c11');
+  trunkGrad.addColorStop(0.4, '#4e321f');
+  trunkGrad.addColorStop(1, '#23140a');
+  
+  ctx.fillStyle = trunkGrad;
+  ctx.beginPath();
+  ctx.moveTo(-12, 14);
+  ctx.lineTo(-8, -25);
+  ctx.lineTo(8, -25);
+  ctx.lineTo(12, 14);
+  ctx.closePath();
+  ctx.fill();
+
+  // Детализация коры и сучок
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.fillRect(-2, -15, 3, 20);
+  ctx.beginPath();
+  ctx.arc(4, -5, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Многослойная крона с объёмом и градиентом
+  ctx.translate(wind, 0); // Легкий сдвиг листвы от ветра
+
+  let foliageClusters = [
+    {x: -18, y: -35, r: 24},
+    {x: 18, y: -35, r: 24},
+    {x: -22, y: -55, r: 20},
+    {x: 22, y: -55, r: 20},
+    {x: 0, y: -75, r: 26},
+    {x: 0, y: -45, r: 28}
+  ];
+
+  // Теневой слой (база)
+  ctx.fillStyle = b.colors[1] || '#1d4a2c';
+  foliageClusters.forEach(c => {
     ctx.beginPath();
-    ctx.arc(0, -35 - i*18, 40 - i*6, 0, Math.PI*2); ctx.fill();
- });
- ctx.restore();
+    ctx.arc(c.x, c.y + 3, c.r + 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Основной цвет
+  ctx.fillStyle = b.colors[0] || '#26633b';
+  foliageClusters.forEach(c => {
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Светлые блики на верхушках листвы
+  ctx.fillStyle = b.colors[2] || '#388e53';
+  foliageClusters.forEach(c => {
+    ctx.beginPath();
+    ctx.arc(c.x - c.r * 0.2, c.y - c.r * 0.25, c.r * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Верхушечный акцент
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.beginPath();
+  ctx.arc(-4, -85, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
 }
 
 function drawLumberjack(x,y){
  ctx.save(); ctx.translate(x,y);
-
  ctx.fillStyle='rgba(0,0,0,0.25)';
  ctx.beginPath(); ctx.ellipse(0, 8, 14, 5, 0, 0, Math.PI*2); ctx.fill();
 
  let legOffset = Math.sin(player.walkFrame)*4;
-
- ctx.fillStyle='#1c2833'; 
- ctx.fillRect(-8, -6 + legOffset, 6, 14);
- ctx.fillRect(2, -6 - legOffset, 6, 14);
-
+ ctx.fillStyle='#1c2833'; ctx.fillRect(-8, -6 + legOffset, 6, 14); ctx.fillRect(2, -6 - legOffset, 6, 14);
  ctx.fillStyle='#c62828'; ctx.fillRect(-10, -26, 20, 20);
  ctx.fillStyle='#111'; ctx.fillRect(-10, -20, 20, 2); ctx.fillRect(-2, -26, 3, 20);
-
  ctx.fillStyle='#ffcc80'; ctx.fillRect(-7, -40, 14, 14);
- ctx.fillStyle='#4e270a'; ctx.fillRect(-9, -32, 18, 10);
- ctx.fillRect(-9, -43, 18, 5);
-
+ ctx.fillStyle='#4e270a'; ctx.fillRect(-9, -32, 18, 10); ctx.fillRect(-9, -43, 18, 5);
  ctx.restore();
 }
 
+function getFurnitureRenderDimensions(item, img){
+  let baseW = item.w, baseH = item.h;
+  if(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0){
+    let aspectRatio = img.naturalWidth / img.naturalHeight;
+    baseH = baseW / aspectRatio;
+  }
+  let customScale = item.scale !== undefined ? item.scale : 1;
+  return { w: baseW * customScale, h: baseH * customScale };
+}
+
 function drawHomeInterior(){
- let wallColor = currentFloor===1 ? '#2c3e50' : (currentFloor===2 ? '#34495e' : '#2c2c54');
- let floorColor = currentFloor===1 ? '#d4a373' : (currentFloor===2 ? '#e0a96d' : '#9b59b6');
+ ctx.fillStyle = '#1e272c';
+ ctx.fillRect(0, 0, W, H);
 
- ctx.fillStyle=wallColor; ctx.fillRect(0,0,W,H);
- ctx.fillStyle='#1a252f'; ctx.fillRect(0,0,W,160);
- ctx.fillStyle=floorColor; ctx.fillRect(60,160,W-120,H-220);
- ctx.fillStyle='rgba(0,0,0,0.1)';
- for(let x=60;x<W-120;x+=50) ctx.fillRect(x,160,3,H-220);
+ ctx.fillStyle = '#c89666';
+ ctx.fillRect(100, 120, W - 200, H - 200);
 
- ctx.fillStyle='#fff'; ctx.fillRect(520,40,160,90);
- ctx.fillStyle='#81d4fa'; ctx.fillRect(526,46,148,78);
- ctx.fillStyle='#2c3e50'; ctx.fillRect(598,40,6,90); ctx.fillRect(520,83,160,6);
+ ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 2;
+ for(let x = 100; x < W - 100; x += 40){
+   ctx.beginPath(); ctx.moveTo(x, 120); ctx.lineTo(x, H - 80); ctx.stroke();
+ }
+ for(let y = 120; y < H - 80; y += 40){
+   ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(W - 100, y); ctx.stroke();
+ }
+
+ ctx.fillStyle = '#141a1d';
+ ctx.fillRect(0, 0, W, 120);
+ ctx.fillRect(0, H - 80, W, 80);
+ ctx.fillRect(0, 0, 100, H);
+ ctx.fillRect(W - 100, 0, 100, H);
+
+ ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 6;
+ ctx.strokeRect(100, 120, W - 200, H - 200);
 
  ctx.fillStyle='#ffd65a'; ctx.font='bold 20px sans-serif';
- ctx.fillText(`${currentFloor}-й ЭТАЖ`, 80, 50);
+ ctx.fillText(`${currentFloor}-й ЭТАЖ`, 120, 50);
 
- placedFurniture.filter(f => f.floor === currentFloor).forEach(f => {
+ let currentItems = placedFurniture.filter(f => f.floor === currentFloor);
+ 
+ currentItems.sort((a,b) => {
+    let layerA = a.layer !== undefined ? a.layer : 1;
+    let layerB = b.layer !== undefined ? b.layer : 1;
+    if(layerA !== layerB) return layerA - layerB;
+    return a.y - b.y;
+ });
+
+ currentItems.forEach(f => {
+    let img = loadedImages[f.id];
+    let dims = getFurnitureRenderDimensions(f, img);
+    let actualW = dims.w;
+    let actualH = dims.h;
+
     ctx.save();
-    ctx.translate(f.x + f.w/2, f.y + f.h/2);
-    if(f.rot) ctx.rotate((f.rot * Math.PI) / 180);
+    ctx.translate(f.x + actualW/2, f.y + actualH/2);
 
-    let rw = f.w, rh = f.h;
+    if(f.flipX) ctx.scale(-1, 1);
+
+    let rw = actualW, rh = actualH;
     let rx = -rw/2, ry = -rh/2;
 
-    if(f.id==='bed'){
-      ctx.fillStyle='#9e2a2b'; ctx.fillRect(rx, ry, rw, rh);
-      ctx.fillStyle='#fff'; ctx.fillRect(rx+5, ry+5, rw*0.3, rh-10);
-    } else if(f.id==='table'){
-      ctx.fillStyle='#6b705c'; ctx.fillRect(rx, ry, rw, rh);
-    } else if(f.id==='carpet'){
-      ctx.fillStyle='#e9c46a'; ctx.fillRect(rx, ry, rw, rh);
-    } else if(f.id==='tv'){
-      ctx.fillStyle='#111'; ctx.fillRect(rx, ry, rw, rh);
-      ctx.fillStyle='#00b4d8'; ctx.fillRect(rx+4, ry+4, rw-8, rh-8);
-    } else if(f.id==='chair'){
-      ctx.fillStyle='#a0522d'; ctx.fillRect(rx, ry, rw, rh);
-      ctx.fillStyle='#8b4513'; ctx.fillRect(rx+4, ry+4, rw-8, rh-8);
-    } else if(f.id==='plant'){
-      ctx.fillStyle='#2e7d32'; ctx.beginPath(); ctx.arc(0, 0, rw/2, 0, Math.PI*2); ctx.fill();
+    if(img && img.complete && img.naturalWidth !== 0) {
+      ctx.drawImage(img, rx, ry, rw, rh);
+    } else {
+      ctx.fillStyle = '#6b705c';
+      ctx.fillRect(rx, ry, rw, rh);
     }
 
     if(editMode){
-      ctx.strokeStyle = (draggingItem === f) ? '#ffea00' : 'rgba(255,255,255,0.6)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = (selectedItem === f || draggingItem === f) ? '#ffea00' : 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 3;
       ctx.setLineDash([4, 4]);
       ctx.strokeRect(rx, ry, rw, rh);
     }
@@ -473,11 +820,11 @@ function drawHomeInterior(){
 }
 
 function addSparks(x,y){
- let sparkColor = (hasAxe && axes[axe].glow) ? axes[axe].glow : '#ffd65a';
+ let sparkColor = (hasAxe && axes[axe] && axes[axe].glow) ? axes[axe].glow : '#ffd65a';
  for(let i=0;i<25;i++){
     particles.push({
-      x, y, vx:(Math.random()-0.5)*14, vy:(Math.random()-0.5)*14,
-      size:Math.random()*6+2, color: sparkColor, life:1.0
+      x, y, vx:(Math.random()-0.5)*16, vy:(Math.random()-0.5)*16,
+      size:Math.random()*7+2, color: sparkColor, life:1.0
     });
  }
 }
@@ -493,7 +840,7 @@ function updateAndDrawParticles(){
 function updateHUD(){
  document.getElementById('money').textContent=money;
  document.getElementById('wood').textContent=wood;
- document.getElementById('axeName').textContent=hasAxe ? axes[axe].name : 'Нет топора';
+ document.getElementById('axeName').textContent=(hasAxe && axes[axe]) ? axes[axe].name : 'Нет топора';
 
  document.getElementById('btnFloor2').style.display = unlockedFloors >= 2 ? 'block' : 'none';
  document.getElementById('btnFloor3').style.display = unlockedFloors >= 3 ? 'block' : 'none';
@@ -508,7 +855,7 @@ function updateChopHP(){
  document.getElementById('hpText').textContent = `${remain} / ${currentTree.maxHp} HP`;
 }
 
-function nearShop(){ return currentZone==='world' && player.x>480 && player.x<740 && player.y>260 && player.y<440; }
+function nearShop(){ return currentZone==='world' && player.x>450 && player.x<780 && player.y>370 && player.y<450; }
 function nearestTree(){
  if(currentZone!=='world') return null;
  let best=null, d=999;
@@ -521,17 +868,17 @@ function hint(){
  if(chopping){ h.style.display='none'; return; }
  h.style.display='block';
  if(currentZone==='home'){
-   if(editMode) h.textContent='Зажми и тащи мебель. Двойной клик — повернуть!';
-   else h.textContent='Нажми «✏️ МЕБЕЛЬ», чтобы переставлять предметы!';
+   if(editMode) h.textContent='Используй кнопки 🔍+ / 🔍- или колесико мыши для изменения размера!';
+   else h.textContent='Жми «✏️ МЕБЕЛЬ», чтобы настраивать интерьер!';
  }
- else if(!hasAxe) h.textContent='Подойди к магазину и возьми свой первый топор!';
+ else if(!hasAxe) h.textContent='Подойди к магазину и купи топор!';
  else if(nearShop() && wood>0) h.textContent='Нажми «СДАТЬ ДЕРЕВО» в магазине!';
  else if(nearestTree()) h.textContent='Нажми «РУБИТЬ», чтобы начать!';
- else h.textContent='Исследуй карту и переключайся между мирами!';
+ else h.textContent='Исследуй карту и обустраивай свой дом!';
 }
 
 const shopModal = document.getElementById('shopModal');
-const shopItems = document.getElementById('shopItems');
+const shopContent = document.getElementById('shopContent');
 
 function openShop(tab='axes'){
  shopModal.style.display='flex';
@@ -539,54 +886,106 @@ function openShop(tab='axes'){
 }
 
 function renderShop(tab){
- shopItems.innerHTML='';
+ shopContent.innerHTML='';
  if(tab==='axes'){
+    let grid = document.createElement('div'); grid.className = 'grid-items';
     axes.forEach((a,idx)=>{
-      let div=document.createElement('div'); div.className='card';
-      div.innerHTML=`<h3>${a.name}</h3><p>Скорость: ${a.speed}<br>Урон: ${a.power}</p>
-      <button class="btn-buy" ${axe>=idx?'disabled':''}>${axe>=idx?'Куплено':(a.price?a.price+' $':'БЕСПЛАТНО')}</button>`;
+      let isEquipped = (axe === idx);
+      let isOwned = a.owned;
+
+      let div=document.createElement('div'); 
+      div.className = `card ${isEquipped ? 'active-axe' : (isOwned ? 'owned' : '')}`;
+      
+      let buttonHtml = '';
+      if(isEquipped){
+        buttonHtml = `<button class="btn-buy btn-equipped">Экипирован</button>`;
+      } else if(isOwned){
+        buttonHtml = `<button class="btn-buy btn-select">Взять</button>`;
+      } else {
+        let priceText = a.price ? a.price+' $' : 'БЕСПЛАТНО';
+        buttonHtml = `<button class="btn-buy">${priceText}</button>`;
+      }
+
+      div.innerHTML=`
+        <h3><img class="card-preview" src="${a.image}" alt=""> ${a.name}</h3>
+        <p>Скорость: ${a.speed}<br>Урон: ${a.power}</p>
+        ${buttonHtml}
+      `;
+      
       div.querySelector('button').onclick=()=>{
-        if(money>=a.price && axe<idx){
-          money-=a.price; axe=idx; hasAxe=true; updateHUD(); renderShop('axes'); toast(`${a.name} куплен!`);
+        if(isOwned && !isEquipped){
+          axe = idx;
+          hasAxe = true;
+          saveGame(); updateHUD(); renderShop('axes'); toast(`Экипирован: ${a.name}`);
+        } else if(!isOwned && money>=a.price){
+          money -= a.price;
+          a.owned = true;
+          axe = idx;
+          hasAxe = true;
+          saveGame(); updateHUD(); renderShop('axes'); toast(`Куплен и экипирован: ${a.name}`);
+        } else if(!isOwned && money < a.price){
+          toast('Недостаточно денег!');
         }
       };
-      shopItems.appendChild(div);
+      grid.appendChild(div);
     });
+    shopContent.appendChild(grid);
  } else if(tab==='biomes'){
+    let grid = document.createElement('div'); grid.className = 'grid-items';
     biomes.forEach((b,idx)=>{
       let div=document.createElement('div'); div.className='card';
       let status = b.unlocked ? (currentBiome===idx?'Текущий':'Перейти') : b.price+' $';
-      div.innerHTML=`<h3>${b.name}</h3><p>❤️ Дерево HP: ${b.treeHp}<br>💵 Цена дерева: ${b.woodVal} $</p>
-      <button class="btn-buy" ${currentBiome===idx?'disabled':''}>${status}</button>`;
+      div.innerHTML=`
+        <h3><img class="card-preview" src="${b.image}" alt=""> ${b.name}</h3>
+        <p>❤️ Дерево HP: ${b.treeHp}<br>💵 Цена дерева: ${b.woodVal} $</p>
+        <button class="btn-buy" ${currentBiome===idx?'disabled':''}>${status}</button>
+      `;
       div.querySelector('button').onclick=()=>{
         if(!b.unlocked && money>=b.price){
           money-=b.price; b.unlocked=true; currentBiome=idx; spawnTrees();
-          updateHUD(); renderShop('biomes'); toast(`Локация открыта!`);
+          saveGame(); updateHUD(); renderShop('biomes'); toast(`Локация открыта!`);
         } else if(b.unlocked){ 
-          currentBiome=idx; spawnTrees(); updateHUD(); renderShop('biomes'); toast('Локация изменена!'); 
+          currentBiome=idx; spawnTrees(); saveGame(); updateHUD(); renderShop('biomes'); toast('Локация изменена!'); 
         } else {
           toast('Недостаточно денег!');
         }
       };
-      shopItems.appendChild(div);
+      grid.appendChild(div);
     });
+    shopContent.appendChild(grid);
  } else if(tab==='furniture'){
-    furnitureCatalog.forEach(f=>{
-      let div=document.createElement('div'); div.className='card';
-      div.innerHTML=`<h3>${f.icon} ${f.name}</h3><p>Размер: ${f.w}x${f.h}</p><button class="btn-buy">${f.price} $</button>`;
-      div.querySelector('button').onclick=()=>{
-        if(money>=f.price){
-          money-=f.price;
+    let buyGrid = document.createElement('div');
+    buyGrid.className = 'grid-items';
+
+    furnitureCatalog.forEach(f => {
+      let div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <h3><img class="card-preview" src="${f.image}" alt=""> ${f.name}</h3>
+        <p>Размер: ${f.w}x${f.h}</p>
+        <button class="btn-buy">${f.price} $</button>
+      `;
+      div.querySelector('button').onclick = () => {
+        if(money >= f.price){
+          money -= f.price;
           placedFurniture.push({
-            id:f.id, x:200+Math.random()*400, y:200+Math.random()*200, 
-            w:f.w, h:f.h, floor:currentFloor, rot:0
+            id: f.id, x: 500 + Math.random()*100, y: 350 + Math.random()*100, 
+            w: f.w, h: f.h, floor: currentFloor, flipX: false, scale: 1, layer: f.layer
           });
-          updateHUD(); toast('Предмет куплен!');
-        } else toast('Недостаточно денег!');
+          saveGame();
+          updateHUD();
+          renderShop('furniture');
+          toast('Мебель куплена!');
+        } else {
+          toast('Недостаточно денег!');
+        }
       };
-      shopItems.appendChild(div);
+      buyGrid.appendChild(div);
     });
+    shopContent.appendChild(buyGrid);
+
  } else if(tab==='house'){
+    let grid = document.createElement('div'); grid.className = 'grid-items';
     const floorsData = [
       {num:2, price:500, name:'Второй этаж'},
       {num:3, price:1500, name:'Третий этаж'}
@@ -599,13 +998,14 @@ function renderShop(tab){
       div.querySelector('button').onclick=()=>{
         if(money>=fl.price && unlockedFloors === fl.num-1){
           money-=fl.price; unlockedFloors=fl.num;
-          updateHUD(); renderShop('house'); toast(`${fl.name} открыт!`);
+          saveGame(); updateHUD(); renderShop('house'); toast(`${fl.name} открыт!`);
         } else if(unlockedFloors < fl.num-1){
           toast('Сначала купи предыдущий этаж!');
         }
       };
-      shopItems.appendChild(div);
+      grid.appendChild(div);
     });
+    shopContent.appendChild(grid);
  }
 }
 
@@ -620,29 +1020,71 @@ document.getElementById('btnHome').onclick=()=>{ switchZone('home'); toggleNav('
 document.getElementById('btnShop').onclick=()=>{ openShop('axes'); };
 
 const btnEdit = document.getElementById('btnEdit');
+const btnFlip = document.getElementById('btnFlip');
+const btnScaleUp = document.getElementById('btnScaleUp');
+const btnScaleDown = document.getElementById('btnScaleDown');
+
 btnEdit.onclick=()=>{
   editMode = !editMode;
   btnEdit.classList.toggle('edit-active', editMode);
+  btnFlip.style.display = editMode ? 'block' : 'none';
+  btnScaleUp.style.display = editMode ? 'block' : 'none';
+  btnScaleDown.style.display = editMode ? 'block' : 'none';
+  if(!editMode) saveGame();
   toast(editMode ? 'Режим редактирования ВКЛ' : 'Режим редактирования ВЫКЛ');
+};
+
+btnFlip.onclick=()=>{
+  if(selectedItem){
+    selectedItem.flipX = !selectedItem.flipX;
+    saveGame();
+    toast('Предмет отзеркален!');
+  } else {
+    toast('Сначала выбери предмет!');
+  }
+};
+
+btnScaleUp.onclick=()=>{
+  if(selectedItem){
+    selectedItem.scale = Math.min(2.5, (selectedItem.scale || 1) + 0.15);
+    saveGame();
+    toast(`Размер увеличен (${Math.round(selectedItem.scale * 100)}%)`);
+  } else {
+    toast('Сначала выбери предмет!');
+  }
+};
+
+btnScaleDown.onclick=()=>{
+  if(selectedItem){
+    selectedItem.scale = Math.max(0.4, (selectedItem.scale || 1) - 0.15);
+    saveGame();
+    toast(`Размер уменьшен (${Math.round(selectedItem.scale * 100)}%)`);
+  } else {
+    toast('Сначала выбери предмет!');
+  }
 };
 
 function switchZone(zone){
   currentZone = zone;
   const isHome = currentZone === 'home';
-  document.getElementById('floorControls').style.display = isHome ? 'flex' : 'none';
+  document.getElementById('homeControls').style.display = isHome ? 'flex' : 'none';
   document.getElementById('worldSelector').style.display = isHome ? 'none' : 'flex';
   btnEdit.style.display = isHome ? 'block' : 'none';
+  btnFlip.style.display = (isHome && editMode) ? 'block' : 'none';
+  btnScaleUp.style.display = (isHome && editMode) ? 'block' : 'none';
+  btnScaleDown.style.display = (isHome && editMode) ? 'block' : 'none';
   if(!isHome && editMode){
     editMode = false;
     btnEdit.classList.remove('edit-active');
+    saveGame();
   }
 }
 
 function setFloor(fl){
   if(fl <= unlockedFloors){
     currentFloor = fl;
-    document.querySelectorAll('.floor-btn').forEach((b, idx)=> {
-      b.classList.toggle('active', (idx+1)===fl);
+    document.querySelectorAll('.control-btn').forEach((b, idx)=> {
+      if(idx < 3) b.classList.toggle('active', (idx+1)===fl);
     });
   }
 }
@@ -653,12 +1095,11 @@ document.getElementById('btnFloor3').onclick=()=>setFloor(3);
 
 function toggleNav(id){
  document.querySelectorAll('.nav-tabs .nav-btn').forEach(b=>{
-   if(b!==btnEdit) b.classList.remove('active');
+   if(b!==btnEdit && b!==btnFlip && b!==btnScaleUp && b!==btnScaleDown) b.classList.remove('active');
  });
  document.getElementById(id).classList.add('active');
 }
 
-// ДРАГ-ЭНД-ДРОП МЕБЕЛИ
 function getCanvasPos(e){
   let rect = world.getBoundingClientRect();
   let clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -671,9 +1112,21 @@ function getCanvasPos(e){
 
 function findFurnitureAt(x, y){
   let items = placedFurniture.filter(f => f.floor === currentFloor);
+  items.sort((a,b) => {
+    let layerA = a.layer !== undefined ? a.layer : 1;
+    let layerB = b.layer !== undefined ? b.layer : 1;
+    if(layerA !== layerB) return layerA - layerB;
+    return a.y - b.y;
+  });
+
   for(let i = items.length - 1; i >= 0; i--){
     let f = items[i];
-    if(x >= f.x && x <= f.x + f.w && y >= f.y && y <= f.y + f.h){
+    let img = loadedImages[f.id];
+    let dims = getFurnitureRenderDimensions(f, img);
+    let actualW = dims.w;
+    let actualH = dims.h;
+
+    if(x >= f.x && x <= f.x + actualW && y >= f.y && y <= f.y + actualH){
       return f;
     }
   }
@@ -683,42 +1136,68 @@ function findFurnitureAt(x, y){
 let lastTapTime = 0;
 
 function handlePointerDown(e){
-  if(!editMode || currentZone !== 'home') return;
+  if(currentZone !== 'home' || !editMode) return;
   let pos = getCanvasPos(e);
   let item = findFurnitureAt(pos.x, pos.y);
   
   if(item){
     let now = Date.now();
+    selectedItem = item;
+
     if(now - lastTapTime < 300 && draggingItem === item){
-      item.rot = ((item.rot || 0) + 90) % 360;
-      toast('Предмет повернут!');
+      item.flipX = !item.flipX;
+      saveGame();
+      toast('Предмет отзеркален!');
+      lastTapTime = 0;
       return;
     }
-    lastTapTime = now;
 
     draggingItem = item;
     dragOffsetX = pos.x - item.x;
     dragOffsetY = pos.y - item.y;
+    lastTapTime = now;
+  } else {
+    selectedItem = null;
   }
 }
 
 function handlePointerMove(e){
   if(!editMode || !draggingItem) return;
   let pos = getCanvasPos(e);
-  
   let newX = pos.x - dragOffsetX;
   let newY = pos.y - dragOffsetY;
 
-  newX = Math.max(60, Math.min(W - 120 - draggingItem.w, newX));
-  newY = Math.max(160, Math.min(H - 60 - draggingItem.h, newY));
+  let img = loadedImages[draggingItem.id];
+  let dims = getFurnitureRenderDimensions(draggingItem, img);
+  let actualW = dims.w;
+  let actualH = dims.h;
+
+  newX = Math.max(100, Math.min(W - 100 - actualW, newX));
+  newY = Math.max(120, Math.min(H - 80 - actualH, newY));
 
   draggingItem.x = newX;
   draggingItem.y = newY;
 }
 
 function handlePointerUp(){
+  if(draggingItem){
+    saveGame();
+  }
   draggingItem = null;
 }
+
+world.addEventListener('wheel', (e) => {
+  if(currentZone !== 'home' || !editMode) return;
+  let pos = getCanvasPos(e);
+  let item = findFurnitureAt(pos.x, pos.y) || selectedItem;
+  if(item){
+    e.preventDefault();
+    let delta = e.deltaY < 0 ? 0.1 : -0.1;
+    item.scale = Math.max(0.4, Math.min(2.5, (item.scale || 1) + delta));
+    selectedItem = item;
+    saveGame();
+  }
+}, {passive: false});
 
 world.addEventListener('mousedown', handlePointerDown);
 world.addEventListener('mousemove', handlePointerMove);
@@ -734,13 +1213,15 @@ function shopInteract(){
       let val = biomes[currentBiome].woodVal;
       let earned = wood * val;
       money += earned; toast(`Продано на ${earned} $!`);
-      wood = 0; updateHUD();
+      wood = 0; 
+      saveGame();
+      updateHUD();
     } else openShop();
  }
 }
 
 function treeInteract(){
- if(!hasAxe) return toast('Купи топор в магазине!');
+ if(!hasAxe) return toast('Сначала купи топор в магазине!');
  const t=nearestTree();
  if(t) startChop(t);
 }
@@ -768,23 +1249,17 @@ function chopHit(){
 
  if(needlePos>=38 && needlePos<=62){
     progress += axes[axe].power;
-    screenShake=10;
+    screenShake = 10;
     addSparks(W/2 + 130, H/2);
     updateChopHP();
     
     if(progress>=currentTree.maxHp){
       wood += 1;
-      
-      // Создаем разлёт щепок в мире на месте дерева
       addSparks(currentTree.x, currentTree.y);
-      
-      // Удаляем срубленное дерево
       trees = trees.filter(t => t !== currentTree);
-      
-      // Создаем абсолютно новое дерево в случайном месте (не у магазина)
       createSingleTree();
-
       stopChop(); 
+      saveGame();
       updateHUD();
       toast(`Срублено! +1 🪵`);
     }
@@ -797,7 +1272,10 @@ document.getElementById('hitAction').onclick=chopHit;
 
 addEventListener('keydown',e=>{
  let k=e.key.toLowerCase(); keys[k]=true;
- if(e.key==='Escape'){ shopModal.style.display='none'; if(chopping) stopChop(); }
+ if(e.key==='Escape'){ 
+    shopModal.style.display='none'; 
+    if(chopping) stopChop(); 
+ }
  if(e.key===' '||k==='e'||k==='у'){
     if(chopping) chopHit();
     else if(nearShop()) shopInteract();
@@ -809,9 +1287,7 @@ addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 let joyX=0, joyY=0, joyActive=false;
 const joyArea=document.getElementById('joystickArea'), joyStick=document.getElementById('joystickStick');
 
-if(isTouchDevice){
- joyArea.style.display='block';
-}
+if(isTouchDevice) joyArea.style.display='block';
 
 function handleTouch(e){
  if(!joyActive) return;
@@ -838,21 +1314,38 @@ function update(dt){
 
     if(joyActive){ dx=joyX; dy=joyY; }
 
-    if(dx!==0 || dy!==0){
-      player.x += dx * speed;
-      player.y += dy * speed;
-      player.walkFrame += dt * 12;
+    let nextX = player.x + dx * speed;
+    let nextY = player.y + dy * speed;
+
+    if(dx!==0 || dy!==0) player.walkFrame += dt * 12;
+
+    let minX = 20, maxX = W - 20;
+    let minY = currentZone === 'home' ? 140 : 280;
+    let maxY = H - 20;
+
+    nextX = Math.max(minX, Math.min(maxX, nextX));
+    nextY = Math.max(minY, Math.min(maxY, nextY));
+
+    if(currentZone === 'world'){
+      let pRadius = 12;
+      let inShopX = (nextX + pRadius > shopBounds.x) && (nextX - pRadius < shopBounds.x + shopBounds.w);
+      let inShopY = (nextY + pRadius > shopBounds.y) && (nextY - pRadius < shopBounds.y + shopBounds.h);
+
+      if(inShopX && inShopY){
+        if(player.x + pRadius <= shopBounds.x || player.x - pRadius >= shopBounds.x + shopBounds.w) nextX = player.x;
+        if(player.y + pRadius <= shopBounds.y || player.y - pRadius >= shopBounds.y + shopBounds.h) nextY = player.y;
+      }
     }
 
-    player.x = Math.max(80, Math.min(W-80, player.x));
-    player.y = Math.max(160, Math.min(H-40, player.y));
+    player.x = nextX;
+    player.y = nextY;
 
     const shopBtn=document.getElementById('shopAction');
     const chopBtn=document.getElementById('chopAction');
     shopBtn.disabled = !nearShop();
     shopBtn.textContent = nearShop() ? (wood>0?'🛒 СДАТЬ ДЕРЕВО':'🛒 МАГАЗИН') : '🛒 МАГАЗИН';
     chopBtn.disabled = !hasAxe || !nearestTree();
- } else if(chopping && hasAxe){
+ } else if(chopping && hasAxe && axes[axe]){
     let sp = axes[axe].speed;
     needlePos += needleDir * sp * dt;
     if(needlePos>100){ needlePos=100; needleDir=-1; }
@@ -870,7 +1363,6 @@ function update(dt){
 
 function drawChopScene(){
  cctx.clearRect(0,0,W,H);
- 
  let b = biomes[currentBiome];
  cctx.fillStyle = b.bg2; cctx.fillRect(0, 0, W, H);
 
@@ -880,24 +1372,26 @@ function drawChopScene(){
  const bw = 300;
  const bx = (W - bw) / 2 - 50;
 
- cctx.fillStyle = 'rgba(0,0,0,0.3)';
- cctx.fillRect(bx - 20, 0, bw + 40, H);
+ cctx.fillStyle = 'rgba(0,0,0,0.3)'; cctx.fillRect(bx - 20, 0, bw + 40, H);
 
- cctx.fillStyle = '#4e321f';
- cctx.fillRect(bx, 0, bw, H);
+ cctx.fillStyle = '#4e321f'; cctx.fillRect(bx, 0, bw, H);
+ cctx.fillStyle = '#362214'; cctx.fillRect(bx + 30, 0, 45, H); cctx.fillRect(bx + 140, 0, 30, H);
 
- cctx.fillStyle = '#362214';
- cctx.fillRect(bx + 30, 0, 45, H);
- cctx.fillRect(bx + 140, 0, 30, H);
+ b.colors.forEach((c, idx) => {
+    cctx.fillStyle = c;
+    cctx.beginPath();
+    cctx.arc(bx + bw/2 + (idx - 1) * 60, -30, 180 - idx * 20, 0, Math.PI * 2);
+    cctx.fill();
+ });
 
- if(hasAxe){
+ if(hasAxe && axes[axe]){
     let baseAngle = -Math.PI / 4;
     let swing = Math.sin(axeSwingAnim * Math.PI) * 0.8;
     let axeAngle = baseAngle + swing;
-    let axeX = bx + bw + 60 - Math.sin(axeSwingAnim * Math.PI) * 40;
-    let axeY = H/2 + 50;
+    let axeX = bx + bw + 110 - Math.sin(axeSwingAnim * Math.PI) * 60;
+    let axeY = H/2 + 80;
 
-    drawAxeSprite(cctx, axeX, axeY, axes[axe], axeAngle);
+    drawAxeSprite(cctx, axeX, axeY, axes[axe], axeAngle, 240);
  }
 }
 
@@ -912,6 +1406,12 @@ function loop(now){
  else { drawWorld(); hint(); }
 
  requestAnimationFrame(loop);
+}
+
+if(axe === -1) {
+  axe = 0;
+  hasAxe = true;
+  axes[0].owned = true;
 }
 
 updateHUD();
