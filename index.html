@@ -76,7 +76,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 .actionbtn.shop{background:linear-gradient(135deg,#8f633e,#6d482c)}
 .actionbtn.chop{background:linear-gradient(135deg,#4f7044,#37522f)}
 
-#joystickArea{display:none;position:absolute;left:20px;bottom:20px;width:120px;height:120px;background:rgba(255,214,90,0.08);border:2px dashed rgba(255,255,255,0.25);border-radius:50%;z-index:7;touch-action:none}
+#joystickArea{display:block;position:absolute;left:20px;bottom:20px;width:120px;height:120px;background:rgba(255,214,90,0.08);border:2px dashed rgba(255,255,255,0.25);border-radius:50%;z-index:7;touch-action:none}
 #joystickStick{position:absolute;left:35px;top:35px;width:50px;height:50px;background:rgba(255,214,90,0.5);border:2px solid #ffd65a;border-radius:50%;pointer-events:none;box-shadow:0 0 15px rgba(255,214,90,0.3)}
 
 @media(max-width:700px){
@@ -89,6 +89,73 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
   .chopUI{left:10%;right:10%;width:80%;top:8%}
 }
 </style>
+
+
+<style id="phone-joystick">
+@media (max-width:700px), (pointer:coarse){
+  #joystickArea{
+    display:block !important;
+    left:14px !important;
+    bottom:calc(14px + env(safe-area-inset-bottom)) !important;
+    width:120px !important;
+    height:120px !important;
+    z-index:20 !important;
+  }
+  #joystickStick{
+    width:50px !important;
+    height:50px !important;
+    left:33px !important;
+    top:33px !important;
+  }
+}
+</style>
+
+<style id="small-phone-ui">
+@media (max-width:700px), (pointer:coarse){
+  .hud{top:6px !important;left:6px !important;right:6px !important;gap:4px !important}
+  .panel{min-height:32px !important;padding:5px 8px !important;border-radius:8px !important;font-size:11px !important}
+  .nav-tabs{top:6px !important;right:6px !important;gap:4px !important}
+  .nav-btn{min-height:34px !important;min-width:58px !important;padding:6px 8px !important;border-radius:8px !important;font-size:10px !important}
+  .world-selector{top:48px !important;left:6px !important;right:6px !important;gap:4px !important}
+  .world-btn{min-height:32px !important;padding:6px 9px !important;border-radius:8px !important;font-size:10px !important}
+  .actionbar{left:6px !important;right:6px !important;bottom:6px !important;gap:5px !important}
+  .actionbtn{min-height:42px !important;padding:7px 6px !important;border-radius:9px !important;font-size:11px !important}
+  #joystickArea{
+    width:96px !important;height:96px !important;
+    left:8px !important;bottom:8px !important;
+  }
+  #joystickStick{
+    width:40px !important;height:40px !important;
+    left:26px !important;top:26px !important;
+  }
+  #toast{top:54px !important;left:6px !important;right:6px !important;padding:7px 10px !important;border-radius:10px !important;font-size:11px !important}
+  .chopUI .actionbtn{min-height:46px !important;font-size:12px !important}
+}
+</style>
+
+<style id="compact-phone-actions">
+@media (max-width:700px), (pointer:coarse){
+  .actionbar{
+    left:auto !important;
+    right:8px !important;
+    bottom:calc(8px + env(safe-area-inset-bottom)) !important;
+    width:auto !important;
+    flex-direction:column !important;
+    align-items:flex-end !important;
+    gap:5px !important;
+  }
+  .actionbar .actionbtn{
+    flex:none !important;
+    width:105px !important;
+    min-width:105px !important;
+    min-height:36px !important;
+    height:36px !important;
+    padding:5px 7px !important;
+    border-radius:8px !important;
+    font-size:10px !important;
+  }
+}
+</style>
 </head>
 <body>
 <div id="game">
@@ -98,6 +165,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
  <div class="panel">💰 <span class="money" id="money">0</span> $</div>
  <div class="panel">🪵 <span class="wood" id="wood">0</span></div>
  <div class="panel">🪓 <span id="axeName">Нет топора</span></div>
+ <div class="panel" id="timeIndicator">☀️ День</div>
 </div>
 
 <div class="world-selector" id="worldSelector"></div>
@@ -175,6 +243,32 @@ let axeSwingAnim=0;
 let player={x:600, y:420, vx:0, vy:0, walkFrame:0, facing:'right'};
 let keys={}, trees=[], particles=[];
 let currentTree=null, screenShake=0, lastTime=performance.now();
+let firstWoodSold = false; 
+
+// Логика времени суток
+let isNight = false;
+let stars = [];
+
+function checkTimeOfDay() {
+  const hour = new Date().getHours();
+  // Ночной режим активен с 20:00 до 06:00
+  const newNight = (hour >= 20 || hour < 6);
+  if (newNight !== isNight) {
+    isNight = newNight;
+    const timeInd = document.getElementById('timeIndicator');
+    if (timeInd) timeInd.textContent = isNight ? '🌙 Ночь' : '☀️ День';
+  }
+}
+
+// Генерируем звёзды для ночного неба
+for(let i=0; i<60; i++) {
+  stars.push({
+    x: Math.random() * W,
+    y: Math.random() * 260,
+    size: Math.random() * 2 + 1,
+    alpha: Math.random()
+  });
+}
 
 const shopBounds = { x: 480, y: 150, w: 320, h: 250 };
 
@@ -237,7 +331,7 @@ axes.forEach(a => {
 
 function saveGame(){
   const saveData = {
-    money, wood, axe, hasAxe, currentBiome, unlockedFloors,
+    money, wood, axe, hasAxe, currentBiome, unlockedFloors, firstWoodSold,
     ownedAxes: axes.map(a => a.owned),
     unlockedBiomes: biomes.map(b => b.unlocked),
     placedFurniture
@@ -256,6 +350,7 @@ function loadGame(){
     if(saveData.hasAxe !== undefined) hasAxe = saveData.hasAxe;
     if(saveData.currentBiome !== undefined) currentBiome = saveData.currentBiome;
     if(saveData.unlockedFloors !== undefined) unlockedFloors = saveData.unlockedFloors;
+    if(saveData.firstWoodSold !== undefined) firstWoodSold = saveData.firstWoodSold;
     if(saveData.ownedAxes && Array.isArray(saveData.ownedAxes)){
       saveData.ownedAxes.forEach((owned, idx) => {
         if(axes[idx]) axes[idx].owned = owned;
@@ -311,6 +406,9 @@ function spawnTrees(){
     trees.push({ x: pos.x, y: pos.y, hp: b.treeHp, maxHp: b.treeHp, type: currentBiome, scale: 0.9 + Math.random()*0.2 });
   }
 }
+
+checkTimeOfDay();
+setInterval(checkTimeOfDay, 10000); // Проверка времени раз в 10 секунд
 
 loadGame();
 spawnTrees();
@@ -383,18 +481,37 @@ function drawWorld(){
 
  if(currentZone==='world'){
     let b=biomes[currentBiome];
+    
+    // Небо с учётом ночной темы
     let grad=ctx.createLinearGradient(0,0,0,300);
-    grad.addColorStop(0, b.bg1); grad.addColorStop(1, '#eef6fb');
+    if (isNight) {
+      grad.addColorStop(0, '#0a0e17'); grad.addColorStop(1, '#1a233a');
+    } else {
+      grad.addColorStop(0, b.bg1); grad.addColorStop(1, '#eef6fb');
+    }
     ctx.fillStyle=grad; ctx.fillRect(0,0,W,300);
 
-    ctx.fillStyle='#00000018';
+    // Звёзды ночью
+    if (isNight) {
+      ctx.fillStyle = '#ffffff';
+      stars.forEach(s => {
+        ctx.globalAlpha = 0.3 + Math.sin(performance.now() * 0.003 + s.x) * 0.4;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+      });
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Горы на заднем плане
+    ctx.fillStyle = isNight ? '#08101a' : '#00000018';
     for(let i=0;i<3;i++){
       ctx.beginPath(); ctx.moveTo(-50,260);
       for(let x=0;x<=W+50;x+=100) ctx.lineTo(x, 180 + Math.sin(x*0.01 + i)*40 + i*20);
       ctx.lineTo(W+50,300); ctx.fill();
     }
 
-    ctx.fillStyle=b.bg2; ctx.fillRect(0,260,W,440);
+    // Земля с затемнением ночью
+    ctx.fillStyle = isNight ? '#1b3b28' : b.bg2; 
+    ctx.fillRect(0,260,W,440);
     ctx.fillStyle='rgba(0,0,0,0.06)';
     for(let y=270;y<H;y+=20) ctx.fillRect(0,y,W,8);
 
@@ -418,18 +535,15 @@ function drawWorld(){
  ctx.restore();
 }
 
-/* Переработанная модель магазина с высокодетализированной графикой */
 function drawStore(){
   ctx.save();
   const sx = 460, sy = 160;
 
-  // 1. Мягкая реалистичная тень от здания на земле
   ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
   ctx.beginPath();
   ctx.ellipse(sx + 140, sy + 230, 160, 22, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 2. Каменный фундамент
   ctx.fillStyle = '#2b2d2f';
   ctx.fillRect(sx, sy + 205, 280, 25);
   ctx.fillStyle = '#1e2022';
@@ -438,7 +552,6 @@ function drawStore(){
   }
   ctx.fillRect(sx, sy + 217, 280, 2);
 
-  // 3. Основной сруб магазина (с фактурой деревянных брусьев)
   let wallGrad = ctx.createLinearGradient(sx, 0, sx + 280, 0);
   wallGrad.addColorStop(0, '#3a2012');
   wallGrad.addColorStop(0.1, '#5c351e');
@@ -448,27 +561,22 @@ function drawStore(){
   ctx.fillStyle = wallGrad;
   ctx.fillRect(sx + 10, sy + 75, 260, 130);
 
-  // Швы между брусьями
   ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
   for(let y = sy + 90; y < sy + 205; y += 15) {
     ctx.fillRect(sx + 10, y, 260, 3);
   }
 
-  // Боковые опорные балки (вертикальные)
   ctx.fillStyle = '#3a2012';
   ctx.fillRect(sx + 8, sy + 75, 14, 130);
   ctx.fillRect(sx + 258, sy + 75, 14, 130);
 
-  // 4. Окна с подсветкой и бликами
   function drawWindow(wx, wy) {
-    // Внутренний свет
     let winGlow = ctx.createRadialGradient(wx + 20, wy + 25, 5, wx + 20, wy + 25, 30);
-    winGlow.addColorStop(0, '#fff4a3');
+    winGlow.addColorStop(0, isNight ? '#fff9b0' : '#fff4a3');
     winGlow.addColorStop(1, '#e67e22');
     ctx.fillStyle = winGlow;
     ctx.fillRect(wx, wy, 40, 50);
 
-    // Рама
     ctx.fillStyle = '#23140a';
     ctx.fillRect(wx - 3, wy - 3, 46, 3);
     ctx.fillRect(wx - 3, wy + 50, 46, 5);
@@ -477,11 +585,9 @@ function drawStore(){
     ctx.fillRect(wx + 18, wy, 4, 50);
     ctx.fillRect(wx, wy + 23, 40, 4);
 
-    // Подконник
     ctx.fillStyle = '#4a2b16';
     ctx.fillRect(wx - 6, wy + 50, 52, 5);
 
-    // Блик на стекле
     ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
     ctx.beginPath();
     ctx.moveTo(wx + 5, wy + 5);
@@ -495,28 +601,24 @@ function drawStore(){
   drawWindow(sx + 35, sy + 100);
   drawWindow(sx + 205, sy + 100);
 
-  // 5. Двухстворчатая входная дверь
   let doorX = sx + 115, doorY = sy + 115;
   ctx.fillStyle = '#2a160a';
-  ctx.fillRect(doorX - 4, doorY - 4, 58, 94); // Арка/Рама
+  ctx.fillRect(doorX - 4, doorY - 4, 58, 94);
 
   ctx.fillStyle = '#422413';
   ctx.fillRect(doorX, doorY, 50, 90);
   
-  // Филёнки двери
   ctx.fillStyle = '#2d180c';
   ctx.fillRect(doorX + 5, doorY + 8, 18, 32);
   ctx.fillRect(doorX + 27, doorY + 8, 18, 32);
   ctx.fillRect(doorX + 5, doorY + 48, 18, 34);
   ctx.fillRect(doorX + 27, doorY + 48, 18, 34);
 
-  // Ручка двери и замочная скважина
   ctx.fillStyle = '#f1c40f';
   ctx.beginPath();
   ctx.arc(doorX + 42, doorY + 48, 3, 0, Math.PI * 2);
   ctx.fill();
 
-  // Лампа над дверью
   ctx.fillStyle = '#d35400';
   ctx.fillRect(doorX + 21, doorY - 14, 8, 10);
   ctx.fillStyle = '#f39c12';
@@ -524,24 +626,20 @@ function drawStore(){
   ctx.arc(doorX + 25, doorY - 14, 8, Math.PI, 0);
   ctx.fill();
   
-  // Свечение фонаря
-  let lanternGlow = ctx.createRadialGradient(doorX + 25, doorY - 10, 2, doorX + 25, doorY - 10, 35);
-  lanternGlow.addColorStop(0, 'rgba(241, 196, 15, 0.6)');
+  let lanternGlow = ctx.createRadialGradient(doorX + 25, doorY - 10, 2, doorX + 25, doorY - 10, isNight ? 55 : 35);
+  lanternGlow.addColorStop(0, isNight ? 'rgba(255, 214, 90, 0.85)' : 'rgba(241, 196, 15, 0.6)');
   lanternGlow.addColorStop(1, 'rgba(241, 196, 15, 0)');
   ctx.fillStyle = lanternGlow;
   ctx.beginPath();
-  ctx.arc(doorX + 25, doorY - 10, 35, 0, Math.PI * 2);
+  ctx.arc(doorX + 25, doorY - 10, isNight ? 55 : 35, 0, Math.PI * 2);
   ctx.fill();
 
-  // Коврик "ВХОД" перед дверью
   ctx.fillStyle = '#111820';
   ctx.fillRect(doorX - 10, sy + 212, 70, 16);
   ctx.strokeStyle = '#e67e22';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(doorX - 8, sy + 214, 66, 12);
 
-  // 6. Фронтон и большая объёмная крыша
-  // Фронтон (треугольник под крышей)
   ctx.fillStyle = '#422413';
   ctx.beginPath();
   ctx.moveTo(sx + 5, sy + 75);
@@ -550,7 +648,6 @@ function drawStore(){
   ctx.closePath();
   ctx.fill();
 
-  // Чердачное окошко
   ctx.fillStyle = '#1a0d06';
   ctx.beginPath();
   ctx.arc(sx + 140, sy + 50, 14, 0, Math.PI * 2);
@@ -559,8 +656,7 @@ function drawStore(){
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Черепица крыши
-  ctx.fillStyle = '#7f2315'; // Базовый терракотовый
+  ctx.fillStyle = '#7f2315';
   ctx.beginPath();
   ctx.moveTo(sx - 15, sy + 80);
   ctx.lineTo(sx + 140, sy + 5);
@@ -571,7 +667,6 @@ function drawStore(){
   ctx.closePath();
   ctx.fill();
 
-  // Верхний край крыши (конёк)
   ctx.fillStyle = '#a93226';
   ctx.beginPath();
   ctx.moveTo(sx - 20, sy + 82);
@@ -583,10 +678,8 @@ function drawStore(){
   ctx.closePath();
   ctx.fill();
 
-  // 7. Декоративная вывеска "МАГАЗИН"
   let signX = sx + 50, signY = sy + 58;
   
-  // Цепи вывески
   ctx.strokeStyle = '#7f8c8d';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -594,24 +687,21 @@ function drawStore(){
   ctx.moveTo(signX + 160, signY - 8); ctx.lineTo(signX + 160, signY);
   ctx.stroke();
 
-  // Доска вывески
   ctx.fillStyle = '#2c1609';
   ctx.fillRect(signX, signY, 180, 34);
   ctx.strokeStyle = '#f1c40f';
   ctx.lineWidth = 2;
   ctx.strokeRect(signX + 3, signY + 3, 174, 28);
 
-  // Текст на вывеске
   ctx.fillStyle = '#ffd65a';
   ctx.font = '900 16px sans-serif';
   ctx.textAlign = 'center';
   ctx.shadowColor = '#000';
   ctx.shadowBlur = 4;
   ctx.fillText('МАГАЗИН 🛒', signX + 90, signY + 23);
-  ctx.shadowBlur = 0; // Сброс тени
+  ctx.shadowBlur = 0;
   ctx.textAlign = 'left';
 
-  // 8. Декоративные кашпо с цветами по бокам
   ctx.fillStyle = '#8e44ad';
   ctx.fillRect(sx + 25, sy + 195, 15, 12);
   ctx.fillRect(sx + 240, sy + 195, 15, 12);
@@ -621,26 +711,9 @@ function drawStore(){
   ctx.arc(sx + 247, sy + 192, 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // 9. Анимированная подсказка "Сдать дерево", если есть древесина
-  if(wood > 0) {
-    let bounce = Math.sin(performance.now() * 0.006) * 4;
-    ctx.fillStyle = '#27ae60';
-    ctx.fillRect(sx + 80, sy - 35 + bounce, 120, 26);
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(sx + 80, sy - 35 + bounce, 120, 26);
-
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('💰 СДАТЬ ДЕРЕВО', sx + 140, sy - 18 + bounce);
-    ctx.textAlign = 'left';
-  }
-
   ctx.restore();
 }
 
-/* Новая улучшенная процедурная отрисовка деревьев */
 function drawDetailedTree(x, y, type, scale) {
   ctx.save();
   let isBehind = (player.y < y) && (Math.abs(player.x - x) < 45) && (Math.abs(player.y - y) < 85);
@@ -648,19 +721,16 @@ function drawDetailedTree(x, y, type, scale) {
 
   ctx.translate(x, y);
   
-  // Легкий эффект покачивания от ветра
   let wind = Math.sin(performance.now() * 0.002 + x) * 2;
   ctx.scale(scale, scale);
 
   let b = biomes[type];
 
-  // 1. Мягкая реалистичная тень на земле
   ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
   ctx.beginPath();
   ctx.ellipse(0, 12, 32, 10, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 2. Ствол дерева с сучком и градиентной корой
   let trunkGrad = ctx.createLinearGradient(-12, 0, 12, 0);
   trunkGrad.addColorStop(0, '#2e1c11');
   trunkGrad.addColorStop(0.4, '#4e321f');
@@ -675,15 +745,13 @@ function drawDetailedTree(x, y, type, scale) {
   ctx.closePath();
   ctx.fill();
 
-  // Детализация коры и сучок
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
   ctx.fillRect(-2, -15, 3, 20);
   ctx.beginPath();
   ctx.arc(4, -5, 3, 0, Math.PI * 2);
   ctx.fill();
 
-  // 3. Многослойная крона с объёмом и градиентом
-  ctx.translate(wind, 0); // Легкий сдвиг листвы от ветра
+  ctx.translate(wind, 0);
 
   let foliageClusters = [
     {x: -18, y: -35, r: 24},
@@ -694,7 +762,6 @@ function drawDetailedTree(x, y, type, scale) {
     {x: 0, y: -45, r: 28}
   ];
 
-  // Теневой слой (база)
   ctx.fillStyle = b.colors[1] || '#1d4a2c';
   foliageClusters.forEach(c => {
     ctx.beginPath();
@@ -702,7 +769,6 @@ function drawDetailedTree(x, y, type, scale) {
     ctx.fill();
   });
 
-  // Основной цвет
   ctx.fillStyle = b.colors[0] || '#26633b';
   foliageClusters.forEach(c => {
     ctx.beginPath();
@@ -710,7 +776,6 @@ function drawDetailedTree(x, y, type, scale) {
     ctx.fill();
   });
 
-  // Светлые блики на верхушках листвы
   ctx.fillStyle = b.colors[2] || '#388e53';
   foliageClusters.forEach(c => {
     ctx.beginPath();
@@ -718,7 +783,6 @@ function drawDetailedTree(x, y, type, scale) {
     ctx.fill();
   });
 
-  // Верхушечный акцент
   ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
   ctx.beginPath();
   ctx.arc(-4, -85, 12, 0, Math.PI * 2);
@@ -727,18 +791,71 @@ function drawDetailedTree(x, y, type, scale) {
   ctx.restore();
 }
 
-function drawLumberjack(x,y){
- ctx.save(); ctx.translate(x,y);
- ctx.fillStyle='rgba(0,0,0,0.25)';
- ctx.beginPath(); ctx.ellipse(0, 8, 14, 5, 0, 0, Math.PI*2); ctx.fill();
+/* Модель лесоруба */
+function drawLumberjack(x, y) {
+  ctx.save();
+  ctx.translate(x, y);
 
- let legOffset = Math.sin(player.walkFrame)*4;
- ctx.fillStyle='#1c2833'; ctx.fillRect(-8, -6 + legOffset, 6, 14); ctx.fillRect(2, -6 - legOffset, 6, 14);
- ctx.fillStyle='#c62828'; ctx.fillRect(-10, -26, 20, 20);
- ctx.fillStyle='#111'; ctx.fillRect(-10, -20, 20, 2); ctx.fillRect(-2, -26, 3, 20);
- ctx.fillStyle='#ffcc80'; ctx.fillRect(-7, -40, 14, 14);
- ctx.fillStyle='#4e270a'; ctx.fillRect(-9, -32, 18, 10); ctx.fillRect(-9, -43, 18, 5);
- ctx.restore();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.beginPath();
+  ctx.ellipse(0, 8, 14, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  let legOffset = Math.sin(player.walkFrame) * 4;
+
+  ctx.fillStyle = '#3e2723';
+  ctx.fillRect(-8, 6 + legOffset, 6, 5);
+  ctx.fillRect(2, 6 - legOffset, 6, 5);
+
+  ctx.fillStyle = '#1a365d';
+  ctx.fillRect(-7, -6 + legOffset, 5, 13);
+  ctx.fillRect(2, -6 - legOffset, 5, 13);
+
+  ctx.fillStyle = '#2d1810';
+  ctx.fillRect(-8, -7, 16, 3);
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(-2, -8, 4, 5);
+
+  ctx.fillStyle = '#b91c1c';
+  ctx.fillRect(-9, -25, 18, 18);
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.fillRect(-9, -25, 18, 4);
+  ctx.fillRect(-9, -17, 18, 4);
+  ctx.fillRect(-5, -25, 4, 18);
+  ctx.fillRect(1, -25, 4, 18);
+
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(-6, -25, 2, 18);
+  ctx.fillRect(4, -25, 2, 18);
+
+  ctx.fillStyle = '#991b1b';
+  ctx.fillRect(-12, -24, 4, 12);
+  ctx.fillRect(8, -24, 4, 12);
+  ctx.fillStyle = '#fca5a5';
+  ctx.fillRect(-12, -12, 4, 4);
+  ctx.fillRect(8, -12, 4, 4);
+
+  ctx.fillStyle = '#fca5a5';
+  ctx.fillRect(-6, -37, 12, 12);
+
+  ctx.fillStyle = '#1f2937';
+  ctx.fillRect(-3, -34, 2, 2);
+  ctx.fillRect(2, -34, 2, 2);
+
+  ctx.fillStyle = '#7c2d12';
+  ctx.fillRect(-7, -32, 14, 10);
+  ctx.fillRect(-5, -22, 10, 4);
+  ctx.fillStyle = '#9a3412';
+  ctx.fillRect(-6, -32, 12, 3);
+
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(-8, -42, 16, 7);
+  ctx.fillRect(-6, -45, 12, 4);
+  ctx.fillStyle = '#166534';
+  ctx.fillRect(-9, -38, 18, 3);
+
+  ctx.restore();
 }
 
 function getFurnitureRenderDimensions(item, img){
@@ -752,10 +869,10 @@ function getFurnitureRenderDimensions(item, img){
 }
 
 function drawHomeInterior(){
- ctx.fillStyle = '#1e272c';
+ ctx.fillStyle = isNight ? '#0b1319' : '#1e272c';
  ctx.fillRect(0, 0, W, H);
 
- ctx.fillStyle = '#c89666';
+ ctx.fillStyle = isNight ? '#8c613e' : '#c89666';
  ctx.fillRect(100, 120, W - 200, H - 200);
 
  ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 2;
@@ -766,7 +883,7 @@ function drawHomeInterior(){
    ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(W - 100, y); ctx.stroke();
  }
 
- ctx.fillStyle = '#141a1d';
+ ctx.fillStyle = isNight ? '#0a0e10' : '#141a1d';
  ctx.fillRect(0, 0, W, 120);
  ctx.fillRect(0, H - 80, W, 80);
  ctx.fillRect(0, 0, 100, H);
@@ -865,7 +982,10 @@ function nearestTree(){
 
 function hint(){
  let h=document.getElementById('hint');
- if(chopping){ h.style.display='none'; return; }
+ if(chopping || firstWoodSold){ 
+    h.style.display='none'; 
+    return; 
+ }
  h.style.display='block';
  if(currentZone==='home'){
    if(editMode) h.textContent='Используй кнопки 🔍+ / 🔍- или колесико мыши для изменения размера!';
@@ -1214,6 +1334,7 @@ function shopInteract(){
       let earned = wood * val;
       money += earned; toast(`Продано на ${earned} $!`);
       wood = 0; 
+      firstWoodSold = true;
       saveGame();
       updateHUD();
     } else openShop();
@@ -1269,6 +1390,11 @@ function chopHit(){
 }
 
 document.getElementById('hitAction').onclick=chopHit;
+
+cc.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  chopHit();
+}, {passive: false});
 
 addEventListener('keydown',e=>{
  let k=e.key.toLowerCase(); keys[k]=true;
@@ -1364,7 +1490,8 @@ function update(dt){
 function drawChopScene(){
  cctx.clearRect(0,0,W,H);
  let b = biomes[currentBiome];
- cctx.fillStyle = b.bg2; cctx.fillRect(0, 0, W, H);
+ cctx.fillStyle = isNight ? '#0b101d' : b.bg2; 
+ cctx.fillRect(0, 0, W, H);
 
  cctx.fillStyle = 'rgba(0,0,0,0.08)';
  for(let y=0; y<H; y+=24) cctx.fillRect(0, y, W, 10);
@@ -1417,5 +1544,6 @@ if(axe === -1) {
 updateHUD();
 requestAnimationFrame(loop);
 </script>
+
 </body>
 </html>
